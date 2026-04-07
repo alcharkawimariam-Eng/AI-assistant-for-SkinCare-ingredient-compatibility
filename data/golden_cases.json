@@ -1,0 +1,7 @@
+[
+  {"input": ["retinol", "salicylic acid"], "expected": "caution"},
+  {"input": ["retinol", "benzoyl peroxide"], "expected": "avoid"},
+  {"input": ["niacinamide", "hyaluronic acid"], "expected": "safe"},
+  {"input": ["glycolic acid", "lactic acid"], "expected": "caution"},
+  {"input": ["azelaic acid", "niacinamide"], "expected": "safe"}
+]

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: extractor
+  namespace: skincare-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: extractor
+  template:
+    metadata:
+      labels:
+        app: extractor
+    spec:
+      containers:
+        - name: extractor
+          image: your-dockerhub-user/extractor:latest
+          ports:
+            - containerPort: 8001

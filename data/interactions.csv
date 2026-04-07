@@ -1,0 +1,19 @@
+ingredient_a,ingredient_b,risk,reason
+retinol,salicylic acid,caution,high irritation risk
+retinol,glycolic acid,avoid,excessive exfoliation and irritation
+retinol,lactic acid,caution,skin sensitivity increase
+retinol,benzoyl peroxide,avoid,retinol degradation and irritation
+retinol,ascorbic acid,caution,pH conflict and irritation
+retinol,tea tree oil,caution,drying and irritation
+salicylic acid,glycolic acid,caution,over-exfoliation
+salicylic acid,lactic acid,caution,excess exfoliation
+salicylic acid,benzoyl peroxide,caution,increased dryness
+glycolic acid,lactic acid,caution,excessive exfoliation
+ascorbic acid,niacinamide,safe,modern formulations are compatible
+benzoyl peroxide,tea tree oil,caution,drying effect stacking
+benzoyl peroxide,sulfur,caution,excess dryness and irritation
+azelaic acid,niacinamide,safe,complementary effects
+niacinamide,hyaluronic acid,safe,hydration support
+niacinamide,ceramides,safe,barrier support
+hyaluronic acid,ceramides,safe,moisturizing synergy
+peptides,ascorbic acid,caution,possible instability
