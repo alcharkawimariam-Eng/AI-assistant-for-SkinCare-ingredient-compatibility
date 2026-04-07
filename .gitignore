@@ -1,6 +1,12 @@
-.venv/
 __pycache__/
-.pytest_cache/
 *.pyc
+.venv/
+venv/
+env/
 .env
+.idea/
+.vscode/
+.DS_Store
+*.log
 mlruns/
+data/raw/
