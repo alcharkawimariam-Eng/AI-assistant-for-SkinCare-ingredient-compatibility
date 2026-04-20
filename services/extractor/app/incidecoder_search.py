@@ -14,10 +14,11 @@ class IncidecoderSearch:
             "User-Agent": "Mozilla/5.0"
         }
 
+
         try:
             response = requests.get(search_url, headers=headers, timeout=15)
             response.raise_for_status()
-        except Exception:
+        except Exception as e:
             return None
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -27,11 +28,12 @@ class IncidecoderSearch:
             href = a["href"]
             text = a.get_text(" ", strip=True)
 
-            if href.startswith("/products/") and text:
+            if href.startswith("/products/") and href != "/products/create" and text:
                 product_links.append({
                     "title": text,
                     "url": "https://incidecoder.com" + href
                 })
+
 
         seen = set()
         unique_links = []
@@ -40,10 +42,13 @@ class IncidecoderSearch:
                 seen.add(item["url"])
                 unique_links.append(item)
 
+        
+
         if not unique_links:
             return None
 
         top_result = unique_links[0]
+
         ingredients_data = self._extract_product_ingredients(top_result["url"])
 
         return {
@@ -95,6 +100,23 @@ class IncidecoderSearch:
             full_ingredients = inactive_text
         elif active_text:
             full_ingredients = active_text
+
+        if not full_ingredients:
+            generic_ingredients = self._extract_section(
+            page_text,
+            start_label="Ingredients overview",
+            end_labels=[
+            "Read more on",
+            "Compare",
+            "Report Error",
+            "Embed",
+            "Highlights",
+            "Key Ingredients",
+            "Ingredients explained",
+            "Show all ingredients by function",
+            ]
+        )
+        full_ingredients = generic_ingredients
 
         return {
             "full_ingredients_text": self._clean_text(full_ingredients),
