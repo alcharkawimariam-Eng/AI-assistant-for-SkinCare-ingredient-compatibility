@@ -4,7 +4,7 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
-from .ingredient_parser import extract_interaction_relevant_ingredients
+
 
 class IncidecoderSearch:
     def search(self, query: str) -> Optional[Dict[str, Any]]:
@@ -44,7 +44,6 @@ class IncidecoderSearch:
             return None
 
         top_result = unique_links[0]
-
         ingredients_data = self._extract_product_ingredients(top_result["url"])
 
         return {
@@ -55,13 +54,10 @@ class IncidecoderSearch:
             "brand": None,
             "product_name": top_result["title"],
             "category": None,
-            "ingredients": ingredients_data["ingredients"],
+            "full_ingredients_text": ingredients_data["full_ingredients_text"],
             "active_ingredients": ingredients_data["active_ingredients"],
-            "interaction_relevant_ingredients": extract_interaction_relevant_ingredients(
-                ingredients_data["ingredients"]
-            ),
             "source_url": top_result["url"],
-}
+        }
 
     def _extract_product_ingredients(self, product_url: str) -> Dict[str, Optional[str]]:
         headers = {
@@ -73,24 +69,24 @@ class IncidecoderSearch:
             response.raise_for_status()
         except Exception:
             return {
-                "ingredients": None,
+                "full_ingredients_text": None,
                 "active_ingredients": None,
             }
 
         soup = BeautifulSoup(response.text, "html.parser")
         page_text = soup.get_text("\n", strip=True)
-        print(page_text[:3000])
+
         active_text = self._extract_section(
-        page_text,
-        start_label="Active Ingredients",
-        end_labels=["Inactive Ingredients", "Read more on", "Compare", "Report Error", "Embed"]
-                                            )
+            page_text,
+            start_label="Active Ingredients",
+            end_labels=["Inactive Ingredients", "Read more on", "Compare", "Report Error", "Embed"]
+        )
 
         inactive_text = self._extract_section(
-        page_text,
-        start_label="Inactive Ingredients",
-        end_labels=["Read more on", "Compare", "Report Error", "Embed", "Highlights", "Key Ingredients"]
-                                        )
+            page_text,
+            start_label="Inactive Ingredients",
+            end_labels=["Read more on", "Compare", "Report Error", "Embed", "Highlights", "Key Ingredients"]
+        )
 
         full_ingredients = None
         if active_text and inactive_text:
@@ -101,7 +97,7 @@ class IncidecoderSearch:
             full_ingredients = active_text
 
         return {
-            "ingredients": self._clean_text(full_ingredients),
+            "full_ingredients_text": self._clean_text(full_ingredients),
             "active_ingredients": self._clean_text(active_text),
         }
 
