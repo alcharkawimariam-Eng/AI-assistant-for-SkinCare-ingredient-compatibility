@@ -63,9 +63,27 @@ def call_extractor(products: list[dict]) -> Dict[str, Any]:
         )
 
 
+def build_analyzer_payload(extractor_result: Dict[str, Any]) -> Dict[str, Any]:
+    found_products = [
+        product
+        for product in extractor_result.get("products", [])
+        if product.get("found") is True
+    ]
+
+    return {
+        "products": found_products,
+        "unknown_products": extractor_result.get("unknown_products", []),
+    }
+
+
 def call_analyzer_if_available(extractor_result: Dict[str, Any]) -> Any:
+    analyzer_payload = build_analyzer_payload(extractor_result)
+
+    if not analyzer_payload["products"]:
+        return None
+
     # Julia's service is not ready yet.
-    # Keep this function as the future integration point.
+    # Later this function will call ANALYZER_URL with analyzer_payload.
     return None
 
 
