@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildScanPayload, scanProducts } from "./api";
 
 function App() {
@@ -325,6 +325,42 @@ const [ingredientError, setIngredientError] = useState("");
   const [routineResult, setRoutineResult] = useState(null);
   const [routineLoading, setRoutineLoading] = useState(false);
 const [routineError, setRoutineError] = useState("");
+const [showHistory, setShowHistory] = useState(false);
+
+const [historyItems, setHistoryItems] = useState(() => {
+  try {
+    const savedHistory = localStorage.getItem("skincareHistory");
+    return savedHistory ? JSON.parse(savedHistory) : [];
+  } catch (error) {
+    console.error("Failed to load history:", error);
+    return [];
+  }
+});
+
+useEffect(() => {
+  localStorage.setItem("skincareHistory", JSON.stringify(historyItems));
+}, [historyItems]);
+
+const addHistoryItem = ({ type, title, summary, status }) => {
+  const newHistoryItem = {
+    id:
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`,
+    type,
+    title,
+    summary,
+    status,
+    createdAt: new Date().toLocaleString(),
+  };
+
+  setHistoryItems((prevItems) => [newHistoryItem, ...prevItems].slice(0, 10));
+};
+
+const clearHistory = () => {
+  localStorage.removeItem("skincareHistory");
+  setHistoryItems([]);
+};
 
   const ingredientLibrary = useMemo(
     () => ({
@@ -892,7 +928,15 @@ const payload = buildScanPayload({
 });
 
       const backendResult = await scanProducts(payload);
-
+addHistoryItem({
+  type: "Interaction Analysis",
+  title: filledProducts.map((product) => product.name).join(" + "),
+  summary:
+    backendResult.decision ||
+    backendResult.summary ||
+    "Interaction analysis completed by backend.",
+  status: backendResult.risk_level || "completed",
+});
       setAnalysisResult({
         status: backendResult.risk_level || backendResult.decision || "Result",
         icon:
@@ -931,12 +975,20 @@ const payload = buildScanPayload({
         unknownProducts: backendResult.unknown_products || [],
         rawBackendResult: backendResult,
       });
-    } catch (error) {
-      console.error(error);
-      setAnalysisError(
-        "Backend is not available yet, or the request failed. Please check if the backend server is running."
-      );
-    } finally {
+    }  catch (error) {
+  console.error(error);
+
+  addHistoryItem({
+    type: "Interaction Analysis",
+    title: filledProducts.map((product) => product.name).join(" + "),
+    summary: "Backend was not available, so the analysis could not be completed.",
+    status: "Backend unavailable",
+  });
+
+  setAnalysisError(
+    "Backend is not available yet, or the request failed. Please check if the backend server is running."
+  );
+} finally {
       setAnalysisLoading(false);
     }
   };
@@ -968,7 +1020,15 @@ const payload = buildScanPayload({
 });
 
     const backendResult = await scanProducts(payload);
-
+addHistoryItem({
+  type: "Product Analyzer",
+  title: singleProduct.name,
+  summary:
+    backendResult.summary ||
+    backendResult.decision ||
+    "Product analysis completed by backend.",
+  status: "completed",
+});
     const returnedProduct =
       backendResult.products?.[0] ||
       backendResult.product ||
@@ -1027,12 +1087,20 @@ const payload = buildScanPayload({
       sectionBg: "#F7F4FF",
       rawBackendResult: backendResult,
     });
-  } catch (error) {
-    console.error(error);
-    setProductError(
-      "Backend is not available yet, or the product analysis request failed. Please check if the backend server is running."
-    );
-  } finally {
+} catch (error) {
+  console.error(error);
+
+  addHistoryItem({
+    type: "Product Analyzer",
+    title: singleProduct.name,
+    summary: "Backend was not available, so the product analysis could not be completed.",
+    status: "Backend unavailable",
+  });
+
+  setProductError(
+    "Backend is not available yet, or the product analysis request failed. Please check if the backend server is running."
+  );
+} finally {
     setProductLoading(false);
   }
 };
@@ -1146,7 +1214,15 @@ profile: {
     };
 
     const backendResult = await scanProducts(payload);
-
+addHistoryItem({
+  type: "Ingredient Checker",
+  title: parsedIngredients.join(", "),
+  summary:
+    backendResult.summary ||
+    backendResult.decision ||
+    "Ingredient check completed by backend.",
+  status: backendResult.risk_level || "completed",
+});
     setIngredientCheckerResult({
       typedIngredients: parsedIngredients,
       matchedEntries: parsedIngredients.map((ingredient) => ({
@@ -1203,11 +1279,20 @@ profile: {
           : "🧪",
       rawBackendResult: backendResult,
     });
-  } catch (error) {
-    console.error(error);
-    setIngredientError(
-     "Backend is not available yet. Please make sure the backend server is running.");
-  } finally {
+} catch (error) {
+  console.error(error);
+
+  addHistoryItem({
+    type: "Ingredient Checker",
+    title: parsedIngredients.join(", "),
+    summary: "Backend was not available, so the ingredient check could not be completed.",
+    status: "Backend unavailable",
+  });
+
+  setIngredientError(
+    "Backend is not available yet. Please make sure the backend server is running."
+  );
+} finally {
     setIngredientLoading(false);
   }
 };
@@ -1241,7 +1326,15 @@ const payload = {
 };
 
     const backendResult = await scanProducts(payload);
-
+addHistoryItem({
+  type: "Routine Builder",
+  title: `${routineSkinType} skin - ${routineConcern}`,
+  summary:
+    backendResult.summary ||
+    backendResult.routine_title ||
+    "Routine recommendation completed by backend.",
+  status: "completed",
+});
     setRoutineResult({
       title:
         backendResult.title ||
@@ -1279,12 +1372,20 @@ const payload = {
       sectionBg: "#F6EEFF",
       rawBackendResult: backendResult,
     });
-  } catch (error) {
-    console.error(error);
-    setRoutineError(
-      "Backend is not available yet, or the routine builder request failed. Please check if the backend server is running."
-    );
-  } finally {
+} catch (error) {
+  console.error(error);
+
+  addHistoryItem({
+    type: "Routine Builder",
+    title: `${routineSkinType} skin - ${routineConcern}`,
+    summary: "Backend was not available, so the routine could not be generated.",
+    status: "Backend unavailable",
+  });
+
+  setRoutineError(
+    "Backend is not available yet, or the routine builder request failed. Please check if the backend server is running."
+  );
+} finally {
     setRoutineLoading(false);
   }
 };
@@ -1404,22 +1505,181 @@ const infoBlockStyle = (bg) => ({
   <option value="fr">Français</option>
 </select>
 
-          <button
-            style={{
-              marginLeft: "10px",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "none",
-              background: "#6C63FF",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
-           {t.history}
-          </button>
+<button
+  onClick={() => setShowHistory((prev) => !prev)}
+  style={{
+    marginLeft: "10px",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#6C63FF",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600",
+  }}
+>
+  {t.history}
+</button>
         </div>
       </div>
+{showHistory && (
+  <div
+    style={{
+      maxWidth: "900px",
+      margin: "24px auto",
+      padding: "0 20px",
+    }}
+  >
+    <div
+      style={{
+        background: "linear-gradient(145deg, #ffffff, #f7f4ff)",
+        border: "1px solid rgba(108,99,255,0.16)",
+        borderRadius: "22px",
+        padding: "22px",
+        boxShadow: "0 10px 26px rgba(108,99,255,0.12)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginBottom: "18px",
+        }}
+      >
+        <div>
+          <h3
+            style={{
+              margin: 0,
+              color: "#2F2A45",
+              fontSize: "22px",
+              fontWeight: "700",
+            }}
+          >
+            🕘 Analysis History
+          </h3>
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "#7C7698",
+              fontSize: "14px",
+            }}
+          >
+            Saved locally on this browser.
+          </p>
+        </div>
 
+        <button
+          onClick={clearHistory}
+          disabled={historyItems.length === 0}
+          style={{
+            padding: "9px 14px",
+            borderRadius: "12px",
+            border: "1px solid #E2CFF8",
+            background: historyItems.length === 0 ? "#F3F0FF" : "#FFF1F1",
+            color: historyItems.length === 0 ? "#9A94AD" : "#C62828",
+            cursor: historyItems.length === 0 ? "not-allowed" : "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Clear History
+        </button>
+      </div>
+
+      {historyItems.length === 0 ? (
+        <div
+          style={{
+            padding: "18px",
+            borderRadius: "16px",
+            background: "#F5F4FF",
+            color: "#6C63FF",
+            fontWeight: "600",
+            textAlign: "center",
+          }}
+        >
+          No saved analyses yet.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: "12px" }}>
+          {historyItems.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                background: "white",
+                border: "1px solid rgba(108,99,255,0.12)",
+                borderRadius: "16px",
+                padding: "16px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  marginBottom: "8px",
+                }}
+              >
+                <strong style={{ color: "#2F2A45" }}>
+                  {item.type}
+                </strong>
+
+                <span
+                  style={{
+                    color: "#7C7698",
+                    fontSize: "13px",
+                  }}
+                >
+                  {item.createdAt}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  color: "#6C63FF",
+                  fontWeight: "700",
+                  marginBottom: "6px",
+                }}
+              >
+                {item.title}
+              </div>
+
+              <div
+                style={{
+                  color: "#4B4563",
+                  lineHeight: "1.6",
+                  fontSize: "14px",
+                }}
+              >
+                {item.summary}
+              </div>
+
+              {item.status && (
+                <div
+                  style={{
+                    display: "inline-block",
+                    marginTop: "10px",
+                    padding: "6px 10px",
+                    borderRadius: "999px",
+                    background: "#F3F0FF",
+                    color: "#6C63FF",
+                    fontSize: "13px",
+                    fontWeight: "700",
+                  }}
+                >
+                  {item.status}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
 <div
  style={{
   position: "relative",
