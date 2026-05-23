@@ -1,5 +1,6 @@
 
 import { useMemo, useState } from "react";
+import { buildScanPayload, scanProducts } from "./api";
 
 function App() {
 const [activeTab, setActiveTab] = useState(null);
@@ -300,6 +301,8 @@ recommendations: "Recommandations",
 
   const [skinType, setSkinType] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+const [analysisError, setAnalysisError] = useState("");
 
   const [singleProduct, setSingleProduct] = useState({
     name: "",
@@ -832,7 +835,7 @@ const sourceNotes = resolvedProducts
     };
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     const filledProducts = products.filter(
       (product) => product.name.trim() !== "" || product.brand.trim() !== ""
     );
@@ -847,12 +850,65 @@ const sourceNotes = resolvedProducts
       return;
     }
 
-    const resolvedProducts = filledProducts.map((item) =>
-      searchProductWithFallback(item.name, item.brand)
-    );
+    setAnalysisLoading(true);
+    setAnalysisError("");
+    setAnalysisResult(null);
 
-    const result = buildInteractionAnalysis(resolvedProducts, skinType);
-    setAnalysisResult(result);
+    try {
+      const payload = buildScanPayload({
+        products: filledProducts,
+        skinType,
+        sensitivity: null,
+      });
+
+      const backendResult = await scanProducts(payload);
+
+      setAnalysisResult({
+        status: backendResult.risk_level || backendResult.decision || "Result",
+        icon:
+          backendResult.risk_level === "high"
+            ? "❌"
+            : backendResult.risk_level === "medium"
+            ? "⚠️"
+            : "✅",
+        score:
+          backendResult.risk_level === "high"
+            ? 35
+            : backendResult.risk_level === "medium"
+            ? 70
+            : 90,
+        summary:
+          backendResult.decision ||
+          backendResult.summary ||
+          "Backend analysis completed.",
+        why: backendResult.explanations || [],
+        recommendations: backendResult.recommendations || [],
+        products: filledProducts.map((product, index) => ({
+          source: "backend",
+          product: {
+            name: product.name || `Product ${index + 1}`,
+            brand: product.brand || "",
+          },
+        })),
+        skinType,
+        sourceNotes: [],
+        bg: "#EEFBEF",
+        border: "#A7E3AE",
+        titleColor: "#2E7D32",
+        badgeBg: "#D6F5D9",
+        badgeColor: "#1F5C24",
+        sectionBg: "#DFF6E2",
+        unknownProducts: backendResult.unknown_products || [],
+        rawBackendResult: backendResult,
+      });
+    } catch (error) {
+      console.error(error);
+      setAnalysisError(
+        "Backend is not available yet, or the request failed. Please check if the backend server is running."
+      );
+    } finally {
+      setAnalysisLoading(false);
+    }
   };
 
   const handleSingleProductChange = (field, value) => {
@@ -1618,7 +1674,38 @@ backdropFilter: "blur(6px)",
   {t.analyze}
 </button>
             </div>
+{analysisLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Analyzing products with backend...
+  </div>
+)}
 
+{analysisError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {analysisError}
+  </div>
+)}
 {analysisResult && (
   <div
     style={{
