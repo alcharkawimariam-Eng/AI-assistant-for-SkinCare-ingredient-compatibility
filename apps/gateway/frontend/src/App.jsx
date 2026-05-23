@@ -503,7 +503,8 @@ const [routineError, setRoutineError] = useState("");
           "Avoid combining with strong acids in the same routine.",
           "Use sunscreen during daytime.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Retinol+Serum",
+       imageEmoji: "🧴",
+imageBg: "#F3F0FF",
       },
       {
         name: "Vitamin C Bright Serum",
@@ -517,7 +518,8 @@ const [routineError, setRoutineError] = useState("");
           "Sensitive skin may need gradual introduction.",
           "Do not overload the same routine with many strong actives.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Vitamin+C+Serum",
+       imageEmoji: "🍊",
+imageBg: "#FFF4E6",
       },
       {
         name: "Barrier Repair Cream",
@@ -534,7 +536,8 @@ const [routineError, setRoutineError] = useState("");
         ],
         activeIngredients: ["Ceramides"],
         warnings: ["No major ingredient warning detected in this simplified dataset preview."],
-        image: "https://via.placeholder.com/260x180?text=Barrier+Cream",
+       imageEmoji: "🛡️",
+imageBg: "#EEFBEF",
       },
       {
         name: "Salicylic Clear Cleanser",
@@ -548,7 +551,8 @@ const [routineError, setRoutineError] = useState("");
           "Can feel drying if the rest of the routine is too harsh.",
           "Avoid too many exfoliating steps in the same routine.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Salicylic+Cleanser",
+       imageEmoji: "🫧",
+imageBg: "#EAF7FF",
       },
       {
         name: "Hydrating HA Essence",
@@ -559,7 +563,8 @@ const [routineError, setRoutineError] = useState("");
         ingredients: ["Hyaluronic Acid", "Glycerin", "Panthenol", "Allantoin"],
         activeIngredients: ["Hyaluronic Acid"],
         warnings: ["No major hard warning detected in this simplified dataset preview."],
-        image: "https://via.placeholder.com/260x180?text=Hydrating+Essence",
+      imageEmoji: "💧",
+imageBg: "#EAFBFF",
       },
     ],
     []
@@ -579,7 +584,8 @@ const [routineError, setRoutineError] = useState("");
           "External-source preview only.",
           "Contains multiple active ingredients and may be strong for sensitive skin.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Effaclar+Serum",
+      imageEmoji: "✨",
+imageBg: "#FFF0F6",
       },
       {
         name: "CeraVe Resurfacing Retinol Serum",
@@ -593,7 +599,8 @@ const [routineError, setRoutineError] = useState("");
           "External-source preview only.",
           "Retinol products need gradual introduction and sunscreen support.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Retinol+Serum",
+       imageEmoji: "🧴",
+imageBg: "#F3F0FF",
       },
       {
         name: "The Ordinary Niacinamide 10% + Zinc 1%",
@@ -607,7 +614,8 @@ const [routineError, setRoutineError] = useState("");
           "External-source preview only.",
           "Some users may feel irritation with high niacinamide percentages.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Niacinamide",
+        imageEmoji: "🌿",
+imageBg: "#F0FAF4",
       },
       {
         name: "SkinCeuticals C E Ferulic",
@@ -621,7 +629,8 @@ const [routineError, setRoutineError] = useState("");
           "External-source preview only.",
           "Vitamin C formulas may be irritating for very sensitive skin.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Vitamin+C",
+       imageEmoji: "🍊",
+imageBg: "#FFF4E6",
       },
     ],
     []
@@ -735,7 +744,8 @@ const [routineError, setRoutineError] = useState("");
           "This is only a name-based fallback.",
           "Do not rely on this as the final product truth.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Fallback+Preview",
+       imageEmoji: "🔎",
+imageBg: "#F7F3FF",
       },
     };
   };
