@@ -1379,7 +1379,16 @@ const infoBlockStyle = (bg) => ({
           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       >
-        <h2 style={{ margin: 0 }}>{t.appName}</h2>
+        <h2
+  style={{
+    margin: 0,
+    color: "#2F2A45",
+    fontWeight: "700",
+    fontSize: "22px",
+  }}
+>
+  {t.appName}
+</h2>
 
         <div>
 <select
