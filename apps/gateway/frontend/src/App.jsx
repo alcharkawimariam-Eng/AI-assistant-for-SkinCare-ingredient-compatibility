@@ -303,6 +303,9 @@ recommendations: "Recommandations",
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
 const [analysisError, setAnalysisError] = useState("");
+const [profileSensitivity, setProfileSensitivity] = useState("");
+const [profileAge, setProfileAge] = useState("");
+const [profileConcerns, setProfileConcerns] = useState([]);
 
   const [singleProduct, setSingleProduct] = useState({
     name: "",
@@ -855,11 +858,13 @@ const sourceNotes = resolvedProducts
     setAnalysisResult(null);
 
     try {
-      const payload = buildScanPayload({
-        products: filledProducts,
-        skinType,
-        sensitivity: null,
-      });
+const payload = buildScanPayload({
+  products: filledProducts,
+  skinType,
+  sensitivity: profileSensitivity,
+  age: profileAge,
+  concerns: profileConcerns,
+});
 
       const backendResult = await scanProducts(payload);
 
@@ -1648,6 +1653,105 @@ backdropFilter: "blur(6px)",
 <option value="Sensitive">{t.sensitive}</option>
               </select>
             </div>
+            <div
+  style={{
+    background: "rgba(108,99,255,0.06)",
+    border: "1px solid rgba(108,99,255,0.12)",
+    borderRadius: "18px",
+    padding: "18px",
+    marginBottom: "25px",
+  }}
+>
+  <h3
+    style={{
+      marginTop: 0,
+      marginBottom: "14px",
+      color: "#4B4563",
+      textAlign: "center",
+    }}
+  >
+    User Profile
+  </h3>
+
+  <div style={{ marginBottom: "14px" }}>
+    <label style={{ fontWeight: "600", color: "#4B4563" }}>
+      Sensitivity
+    </label>
+    <select
+      value={profileSensitivity}
+      onChange={(e) => setProfileSensitivity(e.target.value)}
+      style={inputStyle}
+    >
+      <option value="">Select sensitivity</option>
+      <option value="low">Low</option>
+      <option value="medium">Medium</option>
+      <option value="high">High</option>
+    </select>
+  </div>
+
+  <div style={{ marginBottom: "14px" }}>
+    <label style={{ fontWeight: "600", color: "#4B4563" }}>
+      Age
+    </label>
+    <input
+      type="number"
+      min="10"
+      max="100"
+      placeholder="Enter age"
+      value={profileAge}
+      onChange={(e) => setProfileAge(e.target.value)}
+      style={inputStyle}
+    />
+  </div>
+
+  <div>
+    <label style={{ fontWeight: "600", color: "#4B4563" }}>
+      Concerns
+    </label>
+
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "10px",
+        marginTop: "10px",
+      }}
+    >
+      {["acne", "dryness", "pigmentation", "sensitivity"].map((concern) => (
+        <label
+          key={concern}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "white",
+            border: "1px solid #dcd6ff",
+            borderRadius: "999px",
+            padding: "8px 12px",
+            color: "#4B4563",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={profileConcerns.includes(concern)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setProfileConcerns([...profileConcerns, concern]);
+              } else {
+                setProfileConcerns(
+                  profileConcerns.filter((item) => item !== concern)
+                );
+              }
+            }}
+          />
+          {concern}
+        </label>
+      ))}
+    </div>
+  </div>
+</div>
 
             <div style={{ textAlign: "center", marginBottom: "40px" }}>
 <button

@@ -17,12 +17,28 @@ export async function scanProducts(payload) {
   return response.json();
 }
 
-export function buildScanPayload({ products, skinType, sensitivity }) {
+export function buildScanPayload({
+  products,
+  skinType,
+  sensitivity,
+  age,
+  concerns,
+}) {
   return {
     products: products
       .filter((product) => product.name.trim() !== "")
       .map((product) => product.name.trim()),
+
     skin_type: skinType || null,
     sensitivity: sensitivity || null,
+    age: age || null,
+    concerns: concerns || [],
+
+    profile: {
+      skin_type: skinType || null,
+      sensitivity: sensitivity || null,
+      age: age || null,
+      concerns: concerns || [],
+    },
   };
 }
