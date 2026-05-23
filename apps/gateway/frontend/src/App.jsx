@@ -8,6 +8,80 @@ const [activeTab, setActiveTab] = useState(null);
 
   const translations = {
     en: {
+      userProfile: "User Profile",
+sensitivity: "Sensitivity",
+selectSensitivity: "Select sensitivity",
+low: "Low",
+medium: "Medium",
+high: "High",
+age: "Age",
+enterAge: "Enter age",
+concerns: "Concerns",
+
+analysisHistory: "Analysis History",
+savedLocally: "Saved locally on this browser.",
+clearHistory: "Clear History",
+noSavedAnalyses: "No saved analyses yet.",
+
+analyzingProductsBackend: "Analyzing products with backend...",
+analyzingProductBackend: "Analyzing product with backend...",
+checkingIngredientsBackend: "Checking ingredients with backend...",
+buildingRoutineBackend: "Building routine with backend...",
+
+backendUnavailableShort: "Backend unavailable",
+completed: "Completed",
+
+backendUnavailableAnalysisSummary:
+  "Backend was not available, so the analysis could not be completed.",
+backendUnavailableProductSummary:
+  "Backend was not available, so the product analysis could not be completed.",
+backendUnavailableIngredientSummary:
+  "Backend was not available, so the ingredient check could not be completed.",
+backendUnavailableRoutineSummary:
+  "Backend was not available, so the routine could not be generated.",
+
+backendAnalysisCompleted: "Backend analysis completed.",
+backendProductAnalysisCompleted: "Backend product analysis completed.",
+backendIngredientCheckCompleted: "Ingredient check completed by backend.",
+backendRoutineCompleted: "Routine recommendation completed by backend.",
+
+backendAnalysisError:
+  "Backend is not available yet, or the request failed. Please check if the backend server is running.",
+backendProductError:
+  "Backend is not available yet, or the product analysis request failed. Please check if the backend server is running.",
+backendIngredientError:
+  "Backend is not available yet. Please make sure the backend server is running.",
+backendRoutineError:
+  "Backend is not available yet, or the routine builder request failed. Please check if the backend server is running.",
+
+pleaseEnterIngredient: "Please enter at least one ingredient.",
+pleaseSelectRoutineSkinType: "Please select your skin type.",
+pleaseSelectMainConcernAlert: "Please select your main concern.",
+
+interactionAnalysisType: "Interaction Analysis",
+productAnalyzerType: "Product Analyzer",
+ingredientCheckerType: "Ingredient Checker",
+routineBuilderType: "Routine Builder",
+
+backendProductAnalyzer: "Backend Product Analyzer",
+backendProductSourceMessage: "Product details returned from backend /scan endpoint.",
+backendResult: "Backend result",
+backendRoutineRecommendation: "Backend Routine Recommendation",
+backendRoutineRecommendationCompleted: "Backend routine recommendation completed.",
+
+ingredientCaution: "Ingredient Caution",
+ingredientBackendReview: "Ingredient Backend Review",
+
+enteredIngredients: "Entered Ingredients",
+noStrongSynergy: "No strong synergy detected in this simplified logic.",
+noStrongConflict: "No strong direct conflict detected in this simplified logic.",
+noStrengthData: "No strength data available for the entered items.",
+noCautionData: "No caution data available for the entered items.",
+noPhNote: "No pH-related note available for the entered items.",
+notFoundInLibrary: "Not found in the current simplified library",
+
+footerDevelopedBy: "Developed by Joumana Sakr, Julia Issa, and Mariam Charkawi",
+footerDescription: "AI Assistant for Skincare Ingredient Compatibility",
       appName: "Skincare AI",
       productDetails: "Product Details",
 productNameLabel: "Name",
@@ -103,6 +177,80 @@ whyThisResult: "Why this result",
 recommendations: "Recommendations",     
 },
     ar: {
+      userProfile: "ملف المستخدم",
+sensitivity: "حساسية البشرة",
+selectSensitivity: "اختاري مستوى الحساسية",
+low: "منخفضة",
+medium: "متوسطة",
+high: "عالية",
+age: "العمر",
+enterAge: "أدخلي العمر",
+concerns: "المشاكل/الاهتمامات",
+
+analysisHistory: "سجل التحليلات",
+savedLocally: "محفوظ محليًا على هذا المتصفح.",
+clearHistory: "مسح السجل",
+noSavedAnalyses: "لا توجد تحليلات محفوظة بعد.",
+
+analyzingProductsBackend: "جاري تحليل المنتجات باستخدام الخادم...",
+analyzingProductBackend: "جاري تحليل المنتج باستخدام الخادم...",
+checkingIngredientsBackend: "جاري فحص المكوّنات باستخدام الخادم...",
+buildingRoutineBackend: "جاري بناء الروتين باستخدام الخادم...",
+
+backendUnavailableShort: "الخادم غير متاح",
+completed: "مكتمل",
+
+backendUnavailableAnalysisSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يكتمل تحليل المنتجات.",
+backendUnavailableProductSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يكتمل تحليل المنتج.",
+backendUnavailableIngredientSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يكتمل فحص المكوّنات.",
+backendUnavailableRoutineSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يتم إنشاء الروتين.",
+
+backendAnalysisCompleted: "اكتمل التحليل من الخادم.",
+backendProductAnalysisCompleted: "اكتمل تحليل المنتج من الخادم.",
+backendIngredientCheckCompleted: "اكتمل فحص المكوّنات من الخادم.",
+backendRoutineCompleted: "اكتملت توصية الروتين من الخادم.",
+
+backendAnalysisError:
+  "الخادم غير متاح حاليًا، أو فشل الطلب. يرجى التأكد من تشغيل الخادم.",
+backendProductError:
+  "الخادم غير متاح حاليًا، أو فشل طلب تحليل المنتج. يرجى التأكد من تشغيل الخادم.",
+backendIngredientError:
+  "الخادم غير متاح حاليًا. يرجى التأكد من تشغيل الخادم.",
+backendRoutineError:
+  "الخادم غير متاح حاليًا، أو فشل طلب بناء الروتين. يرجى التأكد من تشغيل الخادم.",
+
+pleaseEnterIngredient: "يرجى إدخال مكوّن واحد على الأقل.",
+pleaseSelectRoutineSkinType: "يرجى اختيار نوع البشرة.",
+pleaseSelectMainConcernAlert: "يرجى اختيار المشكلة الأساسية.",
+
+interactionAnalysisType: "تحليل التفاعل",
+productAnalyzerType: "تحليل المنتج",
+ingredientCheckerType: "فحص المكوّنات",
+routineBuilderType: "بناء الروتين",
+
+backendProductAnalyzer: "تحليل المنتج من الخادم",
+backendProductSourceMessage: "تم إرجاع تفاصيل المنتج من نقطة /scan في الخادم.",
+backendResult: "نتيجة من الخادم",
+backendRoutineRecommendation: "توصية الروتين من الخادم",
+backendRoutineRecommendationCompleted: "اكتملت توصية الروتين من الخادم.",
+
+ingredientCaution: "تحذير من المكوّنات",
+ingredientBackendReview: "مراجعة المكوّنات من الخادم",
+
+enteredIngredients: "المكوّنات المُدخلة",
+noStrongSynergy: "لم يتم اكتشاف توافق قوي في هذا المنطق المبسّط.",
+noStrongConflict: "لم يتم اكتشاف تعارض مباشر قوي في هذا المنطق المبسّط.",
+noStrengthData: "لا توجد بيانات قوة متاحة للمكوّنات المُدخلة.",
+noCautionData: "لا توجد بيانات تحذير متاحة للمكوّنات المُدخلة.",
+noPhNote: "لا توجد ملاحظة متعلقة بدرجة الحموضة لهذه المكوّنات.",
+notFoundInLibrary: "غير موجود في قاعدة المكوّنات المبسّطة الحالية",
+
+footerDevelopedBy: "تم التطوير بواسطة جومانا صقر، جوليا عيسى، ومريم شرقاوي",
+footerDescription: "مساعد ذكي لتوافق مكوّنات العناية بالبشرة",
       appName: "ذكاء العناية بالبشرة",
       productLabel: "المنتج",
       productDetails: "تفاصيل المنتج",
@@ -197,6 +345,80 @@ whyThisResult: "سبب هذه النتيجة",
 recommendations: "التوصيات",
     },
     fr: {
+      userProfile: "Profil utilisateur",
+sensitivity: "Sensibilité",
+selectSensitivity: "Sélectionnez la sensibilité",
+low: "Faible",
+medium: "Moyenne",
+high: "Élevée",
+age: "Âge",
+enterAge: "Entrez l’âge",
+concerns: "Préoccupations",
+
+analysisHistory: "Historique des analyses",
+savedLocally: "Enregistré localement sur ce navigateur.",
+clearHistory: "Effacer l’historique",
+noSavedAnalyses: "Aucune analyse enregistrée pour le moment.",
+
+analyzingProductsBackend: "Analyse des produits avec le serveur...",
+analyzingProductBackend: "Analyse du produit avec le serveur...",
+checkingIngredientsBackend: "Vérification des ingrédients avec le serveur...",
+buildingRoutineBackend: "Création de la routine avec le serveur...",
+
+backendUnavailableShort: "Serveur indisponible",
+completed: "Terminé",
+
+backendUnavailableAnalysisSummary:
+  "Le serveur n’était pas disponible, donc l’analyse n’a pas pu être terminée.",
+backendUnavailableProductSummary:
+  "Le serveur n’était pas disponible, donc l’analyse du produit n’a pas pu être terminée.",
+backendUnavailableIngredientSummary:
+  "Le serveur n’était pas disponible, donc la vérification des ingrédients n’a pas pu être terminée.",
+backendUnavailableRoutineSummary:
+  "Le serveur n’était pas disponible, donc la routine n’a pas pu être générée.",
+
+backendAnalysisCompleted: "Analyse terminée par le serveur.",
+backendProductAnalysisCompleted: "Analyse du produit terminée par le serveur.",
+backendIngredientCheckCompleted: "Vérification des ingrédients terminée par le serveur.",
+backendRoutineCompleted: "Recommandation de routine terminée par le serveur.",
+
+backendAnalysisError:
+  "Le serveur n’est pas disponible pour le moment, ou la requête a échoué. Veuillez vérifier que le serveur backend est lancé.",
+backendProductError:
+  "Le serveur n’est pas disponible pour le moment, ou la requête d’analyse du produit a échoué. Veuillez vérifier que le serveur backend est lancé.",
+backendIngredientError:
+  "Le serveur n’est pas disponible pour le moment. Veuillez vérifier que le serveur backend est lancé.",
+backendRoutineError:
+  "Le serveur n’est pas disponible pour le moment, ou la requête de création de routine a échoué. Veuillez vérifier que le serveur backend est lancé.",
+
+pleaseEnterIngredient: "Veuillez entrer au moins un ingrédient.",
+pleaseSelectRoutineSkinType: "Veuillez sélectionner votre type de peau.",
+pleaseSelectMainConcernAlert: "Veuillez sélectionner la préoccupation principale.",
+
+interactionAnalysisType: "Analyse des interactions",
+productAnalyzerType: "Analyseur de produit",
+ingredientCheckerType: "Vérificateur d’ingrédients",
+routineBuilderType: "Créateur de routine",
+
+backendProductAnalyzer: "Analyse du produit par le serveur",
+backendProductSourceMessage: "Les détails du produit ont été retournés par l’endpoint /scan du serveur.",
+backendResult: "Résultat du serveur",
+backendRoutineRecommendation: "Recommandation de routine du serveur",
+backendRoutineRecommendationCompleted: "Recommandation de routine terminée par le serveur.",
+
+ingredientCaution: "Précaution ingrédient",
+ingredientBackendReview: "Vérification des ingrédients par le serveur",
+
+enteredIngredients: "Ingrédients saisis",
+noStrongSynergy: "Aucune forte synergie détectée dans cette logique simplifiée.",
+noStrongConflict: "Aucun conflit direct fort détecté dans cette logique simplifiée.",
+noStrengthData: "Aucune donnée de puissance disponible pour les ingrédients saisis.",
+noCautionData: "Aucune donnée de précaution disponible pour les ingrédients saisis.",
+noPhNote: "Aucune note liée au pH disponible pour ces ingrédients.",
+notFoundInLibrary: "Introuvable dans la bibliothèque simplifiée actuelle",
+
+footerDevelopedBy: "Développé par Joumana Sakr, Julia Issa et Mariam Charkawi",
+footerDescription: "Assistant IA pour la compatibilité des ingrédients de soin",
       appName: "Skincare AI",
       productLabel: "Produit",
       productDetails: "Détails du produit",
@@ -1923,34 +2145,34 @@ backdropFilter: "blur(6px)",
       textAlign: "center",
     }}
   >
-    User Profile
+    {t.userProfile}
   </h3>
 
   <div style={{ marginBottom: "14px" }}>
     <label style={{ fontWeight: "600", color: "#4B4563" }}>
-      Sensitivity
+     {t.sensitivity}
     </label>
     <select
       value={profileSensitivity}
       onChange={(e) => setProfileSensitivity(e.target.value)}
       style={inputStyle}
     >
-      <option value="">Select sensitivity</option>
-      <option value="low">Low</option>
-      <option value="medium">Medium</option>
-      <option value="high">High</option>
+      <option value="">{t.selectSensitivity}</option>
+<option value="low">{t.low}</option>
+<option value="medium">{t.medium}</option>
+<option value="high">{t.high}</option>
     </select>
   </div>
 
   <div style={{ marginBottom: "14px" }}>
     <label style={{ fontWeight: "600", color: "#4B4563" }}>
-      Age
+      {t.age}
     </label>
     <input
       type="number"
       min="10"
       max="100"
-      placeholder="Enter age"
+      placeholder={t.enterAge}
       value={profileAge}
       onChange={(e) => setProfileAge(e.target.value)}
       style={inputStyle}
@@ -1959,7 +2181,7 @@ backdropFilter: "blur(6px)",
 
   <div>
     <label style={{ fontWeight: "600", color: "#4B4563" }}>
-      Concerns
+      {t.concerns}
     </label>
 
     <div
