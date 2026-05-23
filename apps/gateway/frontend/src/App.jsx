@@ -323,6 +323,8 @@ const [ingredientError, setIngredientError] = useState("");
   const [routineSkinType, setRoutineSkinType] = useState("");
   const [routineConcern, setRoutineConcern] = useState("");
   const [routineResult, setRoutineResult] = useState(null);
+  const [routineLoading, setRoutineLoading] = useState(false);
+const [routineError, setRoutineError] = useState("");
 
   const ingredientLibrary = useMemo(
     () => ({
@@ -1197,166 +1199,85 @@ const handleSingleProductAnalyze = async () => {
 };
    
 
-  const handleRoutineBuild = () => {
-    if (!routineSkinType) {
-      alert("Please select your skin type.");
-      return;
-    }
+ const handleRoutineBuild = async () => {
+  if (!routineSkinType) {
+    alert("Please select your skin type.");
+    return;
+  }
 
-    if (!routineConcern) {
-      alert("Please select your main concern.");
-      return;
-    }
+  if (!routineConcern) {
+    alert("Please select your main concern.");
+    return;
+  }
 
-    let result;
+  setRoutineLoading(true);
+  setRoutineError("");
+  setRoutineResult(null);
 
-    if (routineConcern === "acne") {
-      result = {
-        title: "Acne-Focused Routine",
-        summary:
-          "This routine is designed to help manage breakouts while keeping the skin barrier supported.",
-        morningRoutine: [
-          "Gentle Cleanser",
-          "Niacinamide Serum",
-          "Lightweight Moisturizer",
-          "Oil-free Sunscreen",
-        ],
-        nightRoutine: [
-          "Gentle Cleanser",
-          "Treatment Product (such as salicylic acid or retinol depending on tolerance)",
-          "Barrier-support Moisturizer",
-        ],
-        suggestedProducts: [
-          "Gentle cleanser for acne-prone skin",
-          "Niacinamide serum",
-          "Non-comedogenic moisturizer",
-          "Broad-spectrum sunscreen",
-        ],
-        usageOrder: [
-          "Cleanser",
-          "Treatment/Serum",
-          "Moisturizer",
-          "Sunscreen in the morning only",
-        ],
-        aiNotes: [
-          "Do not introduce multiple strong actives at once.",
-          "If irritation appears, reduce frequency of treatment products.",
-          "Hydration and barrier support are still important even for oily or acne-prone skin.",
-        ],
-        bg: "#EEFBEF",
-        border: "#A7E3AE",
-        titleColor: "#2E7D32",
-        sectionBg: "#DFF6E2",
-      };
-    } else if (routineConcern === "dryness") {
-      result = {
-        title: "Hydration & Barrier Routine",
-        summary:
-          "This routine is designed to reduce dryness and support the skin barrier.",
-        morningRoutine: [
-          "Hydrating Cleanser",
-          "Hyaluronic Acid Serum",
-          "Rich Moisturizer",
-          "Sunscreen",
-        ],
-        nightRoutine: [
-          "Hydrating Cleanser",
-          "Barrier-support Serum or Essence",
-          "Rich Moisturizer or Night Cream",
-        ],
-        suggestedProducts: [
-          "Hydrating cleanser",
-          "Hyaluronic acid serum",
-          "Ceramide moisturizer",
-          "Gentle sunscreen",
-        ],
-        usageOrder: [
-          "Cleanser",
-          "Hydrating serum",
-          "Moisturizer",
-          "Sunscreen in the morning only",
-        ],
-        aiNotes: [
-          "Avoid over-exfoliating while the skin is dry.",
-          "Barrier-support ingredients like ceramides and glycerin are useful.",
-          "Consistency matters more than using too many products.",
-        ],
-        bg: "#F3F0FF",
-        border: "#D7CCFF",
-        titleColor: "#6C63FF",
-        sectionBg: "#F7F4FF",
-      };
-    } else if (routineConcern === "pigmentation") {
-      result = {
-        title: "Brightening Routine",
-        summary:
-          "This routine is designed to help with dullness and uneven tone while keeping irritation controlled.",
-        morningRoutine: [
-          "Gentle Cleanser",
-          "Vitamin C Serum",
-          "Moisturizer",
-          "Sunscreen",
-        ],
-        nightRoutine: [
-          "Gentle Cleanser",
-          "Brightening or renewal-focused treatment",
-          "Moisturizer",
-        ],
-        suggestedProducts: [
-          "Vitamin C serum",
-          "Gentle moisturizer",
-          "Daily sunscreen",
-          "Night treatment for skin renewal",
-        ],
-        usageOrder: [
-          "Cleanser",
-          "Treatment/Serum",
-          "Moisturizer",
-          "Sunscreen in the morning only",
-        ],
-        aiNotes: [
-          "Sunscreen is essential in any pigmentation-focused routine.",
-          "Do not over-layer strong brightening actives if your skin is sensitive.",
-          "Results usually need time and consistency.",
-        ],
-bg: "#FBF4FF",
-border: "#E2CFF8",
-titleColor: "#8A63D2",
-sectionBg: "#F6EEFF",
-      };
-    } else {
-      result = {
-        title: "General Balanced Routine",
-        summary:
-          "This routine is designed as a simple starting structure for everyday skin support.",
-        morningRoutine: ["Gentle Cleanser", "Light Serum", "Moisturizer", "Sunscreen"],
-        nightRoutine: ["Gentle Cleanser", "Targeted Serum if needed", "Moisturizer"],
-        suggestedProducts: [
-          "Gentle cleanser",
-          "Basic serum",
-          "Daily moisturizer",
-          "Broad-spectrum sunscreen",
-        ],
-        usageOrder: ["Cleanser", "Serum", "Moisturizer", "Sunscreen in the morning only"],
-        aiNotes: [
-          "A simple routine is often better than an overloaded one.",
-          "Adjust product strength based on your skin tolerance.",
-          "Later, this tab can become much stronger when connected to the backend dataset.",
-        ],
-        bg: "#EEFBEF",
-        border: "#A7E3AE",
-        titleColor: "#2E7D32",
-        sectionBg: "#DFF6E2",
-      };
-    }
+  try {
+    const payload = {
+      products: [],
+      skin_type: routineSkinType,
+      sensitivity: profileSensitivity || null,
+      age: profileAge || null,
+      concerns: [routineConcern, ...profileConcerns],
+      request_type: "routine_builder",
+      profile: {
+        skin_type: routineSkinType,
+        sensitivity: profileSensitivity || null,
+        age: profileAge || null,
+        concerns: [routineConcern, ...profileConcerns],
+      },
+    };
+
+    const backendResult = await scanProducts(payload);
 
     setRoutineResult({
-      ...result,
+      title:
+        backendResult.title ||
+        backendResult.routine_title ||
+        "Backend Routine Recommendation",
+      summary:
+        backendResult.summary ||
+        "Backend routine recommendation completed.",
+      morningRoutine:
+        backendResult.morningRoutine ||
+        backendResult.morning_routine ||
+        [],
+      nightRoutine:
+        backendResult.nightRoutine ||
+        backendResult.night_routine ||
+        [],
+      suggestedProducts:
+        backendResult.suggestedProducts ||
+        backendResult.suggested_products ||
+        [],
+      usageOrder:
+        backendResult.usageOrder ||
+        backendResult.usage_order ||
+        [],
+      aiNotes:
+        backendResult.aiNotes ||
+        backendResult.recommendations ||
+        backendResult.notes ||
+        [],
       skinType: routineSkinType,
       concern: routineConcern,
+      bg: "#FBF4FF",
+      border: "#E2CFF8",
+      titleColor: "#8A63D2",
+      sectionBg: "#F6EEFF",
+      rawBackendResult: backendResult,
     });
-  };
-
+  } catch (error) {
+    console.error(error);
+    setRoutineError(
+      "Backend is not available yet, or the routine builder request failed. Please check if the backend server is running."
+    );
+  } finally {
+    setRoutineLoading(false);
+  }
+};
 const tabStyle = (tab) => ({
   padding: "10px 20px",
   borderRadius: "30px",
@@ -2998,6 +2919,38 @@ backdropFilter: "blur(6px)",
   {t.buildMyRoutine}
 </button>
     </div>
+    {routineLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Building routine with backend...
+  </div>
+)}
+
+{routineError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {routineError}
+  </div>
+)}
 
     {routineResult && (
       <div
