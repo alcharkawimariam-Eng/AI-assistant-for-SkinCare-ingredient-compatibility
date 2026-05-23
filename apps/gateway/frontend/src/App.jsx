@@ -1206,8 +1206,7 @@ profile: {
   } catch (error) {
     console.error(error);
     setIngredientError(
-      "Backend is not available yet, or the ingredient checker request failed. Please check if the backend server is running."
-    );
+     "Backend is not available yet. Please make sure the backend server is running.");
   } finally {
     setIngredientLoading(false);
   }
