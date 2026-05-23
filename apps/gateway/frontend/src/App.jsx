@@ -3164,6 +3164,26 @@ fontSize: "14px",
   </div>
 )}
       </div>
+      <footer
+  style={{
+    marginTop: "40px",
+    padding: "24px 20px",
+    textAlign: "center",
+    background: "#ffffff",
+    borderTop: "1px solid rgba(108,99,255,0.14)",
+    color: "#4B4563",
+    fontSize: "14px",
+    lineHeight: "1.7",
+  }}
+>
+  <strong>Skincare AI</strong>
+  <div>
+     Developed by Joumana Sakr, Julia Issa, and Mariam Charkawi
+  </div>
+  <div style={{ color: "#7C7698", marginTop: "4px" }}>
+    AI Assistant for Skincare Ingredient Compatibility
+  </div>
+</footer>
     </div>
   );
 }
