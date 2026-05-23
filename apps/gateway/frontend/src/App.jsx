@@ -317,6 +317,8 @@ const [productError, setProductError] = useState("");
 
   const [ingredientInput, setIngredientInput] = useState("");
   const [ingredientCheckerResult, setIngredientCheckerResult] = useState(null);
+  const [ingredientLoading, setIngredientLoading] = useState(false);
+const [ingredientError, setIngredientError] = useState("");
 
   const [routineSkinType, setRoutineSkinType] = useState("");
   const [routineConcern, setRoutineConcern] = useState("");
@@ -1093,66 +1095,107 @@ const handleSingleProductAnalyze = async () => {
     return { synergies, conflicts, developerNotes };
   };
 
-  const handleIngredientCheck = () => {
-    const parsedIngredients = parseIngredientInput(ingredientInput);
+ const handleIngredientCheck = async () => {
+  const parsedIngredients = parseIngredientInput(ingredientInput);
 
-    if (parsedIngredients.length === 0) {
-      alert("Please enter at least one ingredient.");
-      return;
-    }
+  if (parsedIngredients.length === 0) {
+    alert("Please enter at least one ingredient.");
+    return;
+  }
 
-    const matchedEntries = findIngredientMatches(parsedIngredients);
-    const foundCount = matchedEntries.filter((entry) => entry.matched).length;
+  setIngredientLoading(true);
+  setIngredientError("");
+  setIngredientCheckerResult(null);
 
-    const pairInsights = buildPairInsights(matchedEntries);
+  try {
+    const payload = {
+      products: [
+        {
+          id: "ingredient-checker",
+          name: "Ingredient Checker Input",
+          ingredients_text: parsedIngredients.join(", "),
+        },
+      ],
+      skin_type: skinType || null,
+      sensitivity: profileSensitivity || null,
+      age: profileAge || null,
+      concerns: profileConcerns || [],
+      profile: {
+        skin_type: skinType || null,
+        sensitivity: profileSensitivity || null,
+        age: profileAge || null,
+        concerns: profileConcerns || [],
+      },
+    };
 
-    const strengths = matchedEntries
-      .filter((entry) => entry.matched)
-      .map((entry) => `${entry.matched.label}: ${entry.matched.strength}`);
-
-    const cautionFlags = matchedEntries
-      .filter((entry) => entry.matched)
-      .map((entry) => `${entry.matched.label}: ${entry.matched.cautionLevel}`);
-
-    const notes = matchedEntries.flatMap((entry) =>
-      entry.matched
-        ? [`${entry.matched.label}: ${entry.matched.notes.join(" ")}`]
-        : [`${entry.typed}: Not found in the current simplified ingredient library.`]
-    );
-
-    const optimalPH = matchedEntries
-      .filter((entry) => entry.matched)
-      .map((entry) => `${entry.matched.label}: ${entry.matched.optimalPH}`);
+    const backendResult = await scanProducts(payload);
 
     setIngredientCheckerResult({
       typedIngredients: parsedIngredients,
-      matchedEntries,
-      foundCount,
-      synergies: pairInsights.synergies,
-      conflicts: pairInsights.conflicts,
-      developerNotes: pairInsights.developerNotes,
-      strengths,
-      cautionFlags,
-      notes,
-      optimalPH,
-      bg: pairInsights.conflicts.length > 0 ? "#FFF1F1" : "#EEFBEF",
-      border: pairInsights.conflicts.length > 0 ? "#F5B5B5" : "#A7E3AE",
-      titleColor: pairInsights.conflicts.length > 0 ? "#C62828" : "#2E7D32",
-sectionBg: pairInsights.conflicts.length > 0 ? "#FFE7E7" : "#EDF9F0",
+      matchedEntries: parsedIngredients.map((ingredient) => ({
+        typed: ingredient,
+        matched: null,
+      })),
+      foundCount: parsedIngredients.length,
+      synergies: backendResult.synergies || [],
+      conflicts: backendResult.issues?.map((issue) => issue.message) || [],
+      developerNotes:
+        backendResult.explanations ||
+        backendResult.recommendations ||
+        [],
+      strengths: backendResult.strengths || [],
+      cautionFlags:
+        backendResult.cautions ||
+        backendResult.warnings ||
+        [],
+      notes:
+        backendResult.notes ||
+        backendResult.summary
+          ? [backendResult.summary]
+          : [],
+      optimalPH: backendResult.optimalPH || [],
+      bg:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#FFF1F1"
+          : "#EEFBEF",
+      border:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#F5B5B5"
+          : "#A7E3AE",
+      titleColor:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#C62828"
+          : "#2E7D32",
+      sectionBg:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#FFE7E7"
+          : "#EDF9F0",
       status:
-        pairInsights.conflicts.length > 0
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
           ? "Ingredient Caution"
-          : pairInsights.synergies.length > 0
-          ? "Ingredient Match Review"
-          : "Ingredient Logic Review",
+          : "Ingredient Backend Review",
       icon:
-        pairInsights.conflicts.length > 0
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
           ? "⚠️"
-          : pairInsights.synergies.length > 0
-          ? "🧪"
-          : "📋",
+          : "🧪",
+      rawBackendResult: backendResult,
     });
-  };
+  } catch (error) {
+    console.error(error);
+    setIngredientError(
+      "Backend is not available yet, or the ingredient checker request failed. Please check if the backend server is running."
+    );
+  } finally {
+    setIngredientLoading(false);
+  }
+};
+   
 
   const handleRoutineBuild = () => {
     if (!routineSkinType) {
@@ -2572,7 +2615,38 @@ backdropFilter: "blur(6px)",
   {t.checkIngredients}
 </button>
             </div>
+{ingredientLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Checking ingredients with backend...
+  </div>
+)}
 
+{ingredientError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {ingredientError}
+  </div>
+)}
             {ingredientCheckerResult && (
               <div
                 style={{
