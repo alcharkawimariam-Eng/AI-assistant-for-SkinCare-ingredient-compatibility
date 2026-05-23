@@ -312,6 +312,8 @@ const [profileConcerns, setProfileConcerns] = useState([]);
     brand: "",
   });
   const [productAnalysisResult, setProductAnalysisResult] = useState(null);
+  const [productLoading, setProductLoading] = useState(false);
+const [productError, setProductError] = useState("");
 
   const [ingredientInput, setIngredientInput] = useState("");
   const [ingredientCheckerResult, setIngredientCheckerResult] = useState(null);
@@ -923,86 +925,94 @@ const payload = buildScanPayload({
     }));
   };
 
-  const handleSingleProductAnalyze = () => {
-    if (!singleProduct.name.trim()) {
-       alert(t.enterProductNameAlert);
-      return;
-    }
+const handleSingleProductAnalyze = async () => {
+  if (!singleProduct.name.trim()) {
+    alert(t.enterProductNameAlert);
+    return;
+  }
 
-    const searchResult = searchProductWithFallback(singleProduct.name, singleProduct.brand);
-    const matchedProduct = searchResult.product;
-    const detectedActiveObjects = detectIngredientObjectsFromList(
-      matchedProduct.ingredients || []
-    );
-    const warnings = [...(matchedProduct.warnings || [])];
+  setProductLoading(true);
+  setProductError("");
+  setProductAnalysisResult(null);
 
-    if (
-      (matchedProduct.ingredients || []).some((ing) =>
-        ing.toLowerCase().includes("retinol")
-      )
-    ) {
-      warnings.push("Be careful with AHA/BHA or benzoyl peroxide in the same routine.");
-    }
+  try {
+    const payload = buildScanPayload({
+      products: [singleProduct],
+      skinType: null,
+      sensitivity: profileSensitivity,
+      age: profileAge,
+      concerns: profileConcerns,
+    });
+
+    const backendResult = await scanProducts(payload);
+
+    const returnedProduct =
+      backendResult.products?.[0] ||
+      backendResult.product ||
+      null;
 
     setProductAnalysisResult({
-      status:
-        searchResult.source === "local"
-          ? "Dataset-Based Product Analyzer"
-          : searchResult.source === "external"
-          ? "External-Source Product Analyzer"
-          : "Name-Based Product Analyzer",
-      icon:
-        searchResult.source === "local"
-          ? "🧴"
-          : searchResult.source === "external"
-          ? "🌐"
-          : "🔎",
-      source: searchResult.source,
-      sourceMessage:
-        searchResult.source === "local"
-          ? "Matched from the local dataset."
-          : searchResult.message,
+      status: "Backend Product Analyzer",
+      icon: "🧴",
+      source: "backend",
+      sourceMessage: "Product details returned from backend /scan endpoint.",
       summary:
-        searchResult.source === "local"
-          ? "This product was matched from the current local dataset and its details are displayed below."
-          : searchResult.source === "external"
-          ? "This product was not found locally, so an external-source preview was used as fallback."
-          : "No exact local or external preview match was found, so this result uses name-based fallback only.",
-      product: matchedProduct,
-      category: matchedProduct.category,
-      concern: matchedProduct.concern,
-      skinTypes: matchedProduct.skinTypes,
-      ingredients: matchedProduct.ingredients,
-      activeIngredients: matchedProduct.activeIngredients,
-      detectedIngredientObjects: detectedActiveObjects,
-      warnings,
-      image: matchedProduct.image,
-      bg:
-        searchResult.source === "local"
-          ? "#F3F0FF"
-          : searchResult.source === "external"
-          ? "#EAF4FF"
-          : "#FFF9E6",
-      border:
-        searchResult.source === "local"
-          ? "#D7CCFF"
-          : searchResult.source === "external"
-          ? "#B9D8FF"
-          : "#FFD580",
-      titleColor:
-        searchResult.source === "local"
-          ? "#6C63FF"
-          : searchResult.source === "external"
-          ? "#1565C0"
-          : "#C77D00",
-      sectionBg:
-        searchResult.source === "local"
-          ? "#F7F4FF"
-          : searchResult.source === "external"
-          ? "#F1F8FF"
-          : "#FFF3CC",
+        backendResult.summary ||
+        backendResult.decision ||
+        "Backend product analysis completed.",
+      product: {
+        name:
+          returnedProduct?.name ||
+          singleProduct.name ||
+          t.unnamedProduct,
+        brand:
+          returnedProduct?.brand ||
+          singleProduct.brand ||
+          t.noBrand,
+      },
+      category:
+        returnedProduct?.category ||
+        backendResult.category ||
+        "Backend result",
+      concern:
+        returnedProduct?.concern ||
+        backendResult.concerns ||
+        profileConcerns ||
+        [],
+      skinTypes:
+        returnedProduct?.skinTypes ||
+        returnedProduct?.skin_types ||
+        [],
+      ingredients:
+        returnedProduct?.ingredients ||
+        returnedProduct?.full_ingredients_text?.split(",") ||
+        backendResult.ingredients ||
+        [],
+      activeIngredients:
+        returnedProduct?.activeIngredients ||
+        returnedProduct?.interaction_relevant_ingredients ||
+        [],
+      detectedIngredientObjects: [],
+      warnings:
+        backendResult.warnings ||
+        backendResult.explanations ||
+        [],
+      image: "",
+      bg: "#F3F0FF",
+      border: "#D7CCFF",
+      titleColor: "#6C63FF",
+      sectionBg: "#F7F4FF",
+      rawBackendResult: backendResult,
     });
-  };
+  } catch (error) {
+    console.error(error);
+    setProductError(
+      "Backend is not available yet, or the product analysis request failed. Please check if the backend server is running."
+    );
+  } finally {
+    setProductLoading(false);
+  }
+};
 
   const parseIngredientInput = (value) => {
     return value
@@ -2138,7 +2148,38 @@ backdropFilter: "blur(6px)",
   {t.analyzeProduct}
 </button>
             </div>
+{productLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Analyzing product with backend...
+  </div>
+)}
 
+{productError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {productError}
+  </div>
+)}
 {productAnalysisResult && (
   <div
     style={{
