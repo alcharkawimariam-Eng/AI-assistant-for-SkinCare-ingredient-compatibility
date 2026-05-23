@@ -21,23 +21,22 @@ export function buildScanPayload({
   products,
   skinType,
   sensitivity,
-  age,
+  ageGroup,
   concerns,
 }) {
   return {
     products: products
       .filter((product) => product.name.trim() !== "")
-      .map((product) => product.name.trim()),
-
-    skin_type: skinType || null,
-    sensitivity: sensitivity || null,
-    age: age || null,
-    concerns: concerns || [],
+      .slice(0, 6)
+      .map((product, index) => ({
+        id: `p${index + 1}`,
+        name: product.name.trim(),
+      })),
 
     profile: {
       skin_type: skinType || null,
       sensitivity: sensitivity || null,
-      age: age || null,
+      age_group: ageGroup || null,
       concerns: concerns || [],
     },
   };

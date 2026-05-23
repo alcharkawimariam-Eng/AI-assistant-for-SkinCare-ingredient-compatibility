@@ -843,7 +843,16 @@ const sourceNotes = resolvedProducts
       sourceNotes,
     };
   };
+const getAgeGroup = (age) => {
+  const numericAge = Number(age);
 
+  if (!numericAge) return null;
+  if (numericAge < 18) return "teen";
+  if (numericAge < 30) return "young_adult";
+  if (numericAge < 60) return "adult";
+
+  return "senior";
+};
   const handleAnalyze = async () => {
     const filledProducts = products.filter(
       (product) => product.name.trim() !== "" || product.brand.trim() !== ""
@@ -868,7 +877,7 @@ const payload = buildScanPayload({
   products: filledProducts,
   skinType,
   sensitivity: profileSensitivity,
-  age: profileAge,
+  ageGroup: getAgeGroup(profileAge),
   concerns: profileConcerns,
 });
 
@@ -940,13 +949,13 @@ const handleSingleProductAnalyze = async () => {
   setProductAnalysisResult(null);
 
   try {
-    const payload = buildScanPayload({
-      products: [singleProduct],
-      skinType: null,
-      sensitivity: profileSensitivity,
-      age: profileAge,
-      concerns: profileConcerns,
-    });
+const payload = buildScanPayload({
+  products: [singleProduct],
+  skinType: null,
+  sensitivity: profileSensitivity,
+  ageGroup: getAgeGroup(profileAge),
+  concerns: profileConcerns,
+});
 
     const backendResult = await scanProducts(payload);
 
@@ -1118,16 +1127,12 @@ const handleSingleProductAnalyze = async () => {
           ingredients_text: parsedIngredients.join(", "),
         },
       ],
-      skin_type: skinType || null,
-      sensitivity: profileSensitivity || null,
-      age: profileAge || null,
-      concerns: profileConcerns || [],
-      profile: {
-        skin_type: skinType || null,
-        sensitivity: profileSensitivity || null,
-        age: profileAge || null,
-        concerns: profileConcerns || [],
-      },
+profile: {
+  skin_type: skinType || null,
+  sensitivity: profileSensitivity || null,
+  age_group: getAgeGroup(profileAge),
+  concerns: profileConcerns || [],
+},
     };
 
     const backendResult = await scanProducts(payload);
@@ -1215,20 +1220,16 @@ const handleSingleProductAnalyze = async () => {
   setRoutineResult(null);
 
   try {
-    const payload = {
-      products: [],
-      skin_type: routineSkinType,
-      sensitivity: profileSensitivity || null,
-      age: profileAge || null,
-      concerns: [routineConcern, ...profileConcerns],
-      request_type: "routine_builder",
-      profile: {
-        skin_type: routineSkinType,
-        sensitivity: profileSensitivity || null,
-        age: profileAge || null,
-        concerns: [routineConcern, ...profileConcerns],
-      },
-    };
+const payload = {
+  products: [],
+  request_type: "routine_builder",
+  profile: {
+    skin_type: routineSkinType,
+    sensitivity: profileSensitivity || null,
+    age_group: getAgeGroup(profileAge),
+    concerns: [routineConcern, ...profileConcerns],
+  },
+};
 
     const backendResult = await scanProducts(payload);
 
