@@ -207,7 +207,6 @@ def analyze_payload(payload: AnalyzerRequest) -> AnalyzerResponse:
 
     valid_products = [p for p in payload.products if p.found]
 
-    # ---- derive product roles ----
     product_analysis = [
         ProductAnalysis(
             id=p.id,
@@ -217,38 +216,45 @@ def analyze_payload(payload: AnalyzerRequest) -> AnalyzerResponse:
         for p in valid_products
     ]
 
-    # ---- stacking detection ----
     counter = Counter()
     ingredient_to_products = {}
 
     for p in valid_products:
-        ings = [normalize(i) for i in p.interaction_relevant_ingredients if i]
+        ingredients = [normalize(i) for i in p.interaction_relevant_ingredients if i]
 
-        for ing in set(ings):
-            counter[ing] += 1
-            ingredient_to_products.setdefault(ing, []).append(p.id)
+        for ingredient in set(ingredients):
+            counter[ingredient] += 1
+            ingredient_to_products.setdefault(ingredient, []).append(p.id)
 
-    for ing, count in counter.items():
-        if count >= 2 and ing in STACKING_RULES:
-            rule = STACKING_RULES[ing]
+    for ingredient, count in counter.items():
+        if count >= 2 and ingredient in STACKING_RULES:
+            rule = STACKING_RULES[ingredient]
             issues.append(
                 Issue(
-                    product_ids=ingredient_to_products[ing],
-                    ingredients=[ing],
+                    product_ids=ingredient_to_products[ingredient],
+                    ingredients=[ingredient],
                     message=rule["message"],
                 )
             )
             recommendations.append(rule["recommendation"])
             risk_levels.append(rule["risk_level"])
 
-    # ---- pairwise detection ----
     for p1, p2 in combinations(valid_products, 2):
-        ing1 = {normalize(i) for i in p1.interaction_relevant_ingredients if i}
-        ing2 = {normalize(i) for i in p2.interaction_relevant_ingredients if i}
+        ingredients_1 = {
+            normalize(i)
+            for i in p1.interaction_relevant_ingredients
+            if i
+        }
+        ingredients_2 = {
+            normalize(i)
+            for i in p2.interaction_relevant_ingredients
+            if i
+        }
 
-        for a in ing1:
-            for b in ing2:
-                pair = frozenset({a, b})
+        for ingredient_1 in ingredients_1:
+            for ingredient_2 in ingredients_2:
+                pair = frozenset({ingredient_1, ingredient_2})
+
                 if len(pair) == 2 and pair in PAIR_RULES:
                     rule = PAIR_RULES[pair]
                     issues.append(

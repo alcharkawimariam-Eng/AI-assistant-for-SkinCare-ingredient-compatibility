@@ -60,5 +60,10 @@
   {"input": ["dimethicone", "curly hair"], "expected": "caution"},
   {"input": ["keratin", "protein"], "expected": "caution"},
   {"input": ["sulfates", "keratin"], "expected": "safe"},
-  {"input": ["niacinamide", "green tea"], "expected": "safe"}
+  {"input": ["niacinamide", "green tea"], "expected": "safe"},
+  {"input": ["retinol"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
+  {"input": ["vitamin c"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
+  {"input": ["salicylic acid"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
+  {"input": ["glycolic acid"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
+  {"input": ["fragrance"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"}
 ]

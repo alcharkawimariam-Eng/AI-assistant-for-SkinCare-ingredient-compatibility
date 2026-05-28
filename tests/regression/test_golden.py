@@ -31,7 +31,12 @@ def test_golden_cases_risk_level():
 
     for case in cases:
         expected = normalize_expected_label(case["expected"])
-        predicted, score, reasons = assess_ingredient_rules(case["input"])
+
+        predicted, score, reasons = assess_ingredient_rules(
+            case["input"],
+            skin_type=case.get("skin_type"),
+            sensitivity=case.get("sensitivity"),
+        )
 
         y_true.append(expected)
         y_pred.append(predicted)
