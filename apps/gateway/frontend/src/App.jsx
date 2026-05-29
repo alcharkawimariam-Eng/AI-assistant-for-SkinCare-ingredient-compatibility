@@ -1,5 +1,6 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { buildScanPayload, scanProducts } from "./api";
 
 function App() {
 const [activeTab, setActiveTab] = useState(null);
@@ -7,6 +8,80 @@ const [activeTab, setActiveTab] = useState(null);
 
   const translations = {
     en: {
+      userProfile: "User Profile",
+sensitivity: "Sensitivity",
+selectSensitivity: "Select sensitivity",
+low: "Low",
+medium: "Medium",
+high: "High",
+age: "Age",
+enterAge: "Enter age",
+concerns: "Concerns",
+
+analysisHistory: "Analysis History",
+savedLocally: "Saved locally on this browser.",
+clearHistory: "Clear History",
+noSavedAnalyses: "No saved analyses yet.",
+
+analyzingProductsBackend: "Analyzing products with backend...",
+analyzingProductBackend: "Analyzing product with backend...",
+checkingIngredientsBackend: "Checking ingredients with backend...",
+buildingRoutineBackend: "Building routine with backend...",
+
+backendUnavailableShort: "Backend unavailable",
+completed: "Completed",
+
+backendUnavailableAnalysisSummary:
+  "Backend was not available, so the analysis could not be completed.",
+backendUnavailableProductSummary:
+  "Backend was not available, so the product analysis could not be completed.",
+backendUnavailableIngredientSummary:
+  "Backend was not available, so the ingredient check could not be completed.",
+backendUnavailableRoutineSummary:
+  "Backend was not available, so the routine could not be generated.",
+
+backendAnalysisCompleted: "Backend analysis completed.",
+backendProductAnalysisCompleted: "Backend product analysis completed.",
+backendIngredientCheckCompleted: "Ingredient check completed by backend.",
+backendRoutineCompleted: "Routine recommendation completed by backend.",
+
+backendAnalysisError:
+  "Backend is not available yet, or the request failed. Please check if the backend server is running.",
+backendProductError:
+  "Backend is not available yet, or the product analysis request failed. Please check if the backend server is running.",
+backendIngredientError:
+  "Backend is not available yet. Please make sure the backend server is running.",
+backendRoutineError:
+  "Backend is not available yet, or the routine builder request failed. Please check if the backend server is running.",
+
+pleaseEnterIngredient: "Please enter at least one ingredient.",
+pleaseSelectRoutineSkinType: "Please select your skin type.",
+pleaseSelectMainConcernAlert: "Please select your main concern.",
+
+interactionAnalysisType: "Interaction Analysis",
+productAnalyzerType: "Product Analyzer",
+ingredientCheckerType: "Ingredient Checker",
+routineBuilderType: "Routine Builder",
+
+backendProductAnalyzer: "Backend Product Analyzer",
+backendProductSourceMessage: "Product details returned from backend /scan endpoint.",
+backendResult: "Backend result",
+backendRoutineRecommendation: "Backend Routine Recommendation",
+backendRoutineRecommendationCompleted: "Backend routine recommendation completed.",
+
+ingredientCaution: "Ingredient Caution",
+ingredientBackendReview: "Ingredient Backend Review",
+
+enteredIngredients: "Entered Ingredients",
+noStrongSynergy: "No strong synergy detected in this simplified logic.",
+noStrongConflict: "No strong direct conflict detected in this simplified logic.",
+noStrengthData: "No strength data available for the entered items.",
+noCautionData: "No caution data available for the entered items.",
+noPhNote: "No pH-related note available for the entered items.",
+notFoundInLibrary: "Not found in the current simplified library",
+
+footerDevelopedBy: "Developed by Joumana Sakr, Julia Issa, and Mariam Charkawi",
+footerDescription: "AI Assistant for Skincare Ingredient Compatibility",
       appName: "Skincare AI",
       productDetails: "Product Details",
 productNameLabel: "Name",
@@ -102,6 +177,80 @@ whyThisResult: "Why this result",
 recommendations: "Recommendations",     
 },
     ar: {
+      userProfile: "ملف المستخدم",
+sensitivity: "حساسية البشرة",
+selectSensitivity: "اختاري مستوى الحساسية",
+low: "منخفضة",
+medium: "متوسطة",
+high: "عالية",
+age: "العمر",
+enterAge: "أدخلي العمر",
+concerns: "المشاكل/الاهتمامات",
+
+analysisHistory: "سجل التحليلات",
+savedLocally: "محفوظ محليًا على هذا المتصفح.",
+clearHistory: "مسح السجل",
+noSavedAnalyses: "لا توجد تحليلات محفوظة بعد.",
+
+analyzingProductsBackend: "جاري تحليل المنتجات باستخدام الخادم...",
+analyzingProductBackend: "جاري تحليل المنتج باستخدام الخادم...",
+checkingIngredientsBackend: "جاري فحص المكوّنات باستخدام الخادم...",
+buildingRoutineBackend: "جاري بناء الروتين باستخدام الخادم...",
+
+backendUnavailableShort: "الخادم غير متاح",
+completed: "مكتمل",
+
+backendUnavailableAnalysisSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يكتمل تحليل المنتجات.",
+backendUnavailableProductSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يكتمل تحليل المنتج.",
+backendUnavailableIngredientSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يكتمل فحص المكوّنات.",
+backendUnavailableRoutineSummary:
+  "لم يكن الخادم متاحًا، لذلك لم يتم إنشاء الروتين.",
+
+backendAnalysisCompleted: "اكتمل التحليل من الخادم.",
+backendProductAnalysisCompleted: "اكتمل تحليل المنتج من الخادم.",
+backendIngredientCheckCompleted: "اكتمل فحص المكوّنات من الخادم.",
+backendRoutineCompleted: "اكتملت توصية الروتين من الخادم.",
+
+backendAnalysisError:
+  "الخادم غير متاح حاليًا، أو فشل الطلب. يرجى التأكد من تشغيل الخادم.",
+backendProductError:
+  "الخادم غير متاح حاليًا، أو فشل طلب تحليل المنتج. يرجى التأكد من تشغيل الخادم.",
+backendIngredientError:
+  "الخادم غير متاح حاليًا. يرجى التأكد من تشغيل الخادم.",
+backendRoutineError:
+  "الخادم غير متاح حاليًا، أو فشل طلب بناء الروتين. يرجى التأكد من تشغيل الخادم.",
+
+pleaseEnterIngredient: "يرجى إدخال مكوّن واحد على الأقل.",
+pleaseSelectRoutineSkinType: "يرجى اختيار نوع البشرة.",
+pleaseSelectMainConcernAlert: "يرجى اختيار المشكلة الأساسية.",
+
+interactionAnalysisType: "تحليل التفاعل",
+productAnalyzerType: "تحليل المنتج",
+ingredientCheckerType: "فحص المكوّنات",
+routineBuilderType: "بناء الروتين",
+
+backendProductAnalyzer: "تحليل المنتج من الخادم",
+backendProductSourceMessage: "تم إرجاع تفاصيل المنتج من نقطة /scan في الخادم.",
+backendResult: "نتيجة من الخادم",
+backendRoutineRecommendation: "توصية الروتين من الخادم",
+backendRoutineRecommendationCompleted: "اكتملت توصية الروتين من الخادم.",
+
+ingredientCaution: "تحذير من المكوّنات",
+ingredientBackendReview: "مراجعة المكوّنات من الخادم",
+
+enteredIngredients: "المكوّنات المُدخلة",
+noStrongSynergy: "لم يتم اكتشاف توافق قوي في هذا المنطق المبسّط.",
+noStrongConflict: "لم يتم اكتشاف تعارض مباشر قوي في هذا المنطق المبسّط.",
+noStrengthData: "لا توجد بيانات قوة متاحة للمكوّنات المُدخلة.",
+noCautionData: "لا توجد بيانات تحذير متاحة للمكوّنات المُدخلة.",
+noPhNote: "لا توجد ملاحظة متعلقة بدرجة الحموضة لهذه المكوّنات.",
+notFoundInLibrary: "غير موجود في قاعدة المكوّنات المبسّطة الحالية",
+
+footerDevelopedBy: "تم التطوير بواسطة جومانا صقر، جوليا عيسى، ومريم شرقاوي",
+footerDescription: "مساعد ذكي لتوافق مكوّنات العناية بالبشرة",
       appName: "ذكاء العناية بالبشرة",
       productLabel: "المنتج",
       productDetails: "تفاصيل المنتج",
@@ -196,6 +345,80 @@ whyThisResult: "سبب هذه النتيجة",
 recommendations: "التوصيات",
     },
     fr: {
+      userProfile: "Profil utilisateur",
+sensitivity: "Sensibilité",
+selectSensitivity: "Sélectionnez la sensibilité",
+low: "Faible",
+medium: "Moyenne",
+high: "Élevée",
+age: "Âge",
+enterAge: "Entrez l’âge",
+concerns: "Préoccupations",
+
+analysisHistory: "Historique des analyses",
+savedLocally: "Enregistré localement sur ce navigateur.",
+clearHistory: "Effacer l’historique",
+noSavedAnalyses: "Aucune analyse enregistrée pour le moment.",
+
+analyzingProductsBackend: "Analyse des produits avec le serveur...",
+analyzingProductBackend: "Analyse du produit avec le serveur...",
+checkingIngredientsBackend: "Vérification des ingrédients avec le serveur...",
+buildingRoutineBackend: "Création de la routine avec le serveur...",
+
+backendUnavailableShort: "Serveur indisponible",
+completed: "Terminé",
+
+backendUnavailableAnalysisSummary:
+  "Le serveur n’était pas disponible, donc l’analyse n’a pas pu être terminée.",
+backendUnavailableProductSummary:
+  "Le serveur n’était pas disponible, donc l’analyse du produit n’a pas pu être terminée.",
+backendUnavailableIngredientSummary:
+  "Le serveur n’était pas disponible, donc la vérification des ingrédients n’a pas pu être terminée.",
+backendUnavailableRoutineSummary:
+  "Le serveur n’était pas disponible, donc la routine n’a pas pu être générée.",
+
+backendAnalysisCompleted: "Analyse terminée par le serveur.",
+backendProductAnalysisCompleted: "Analyse du produit terminée par le serveur.",
+backendIngredientCheckCompleted: "Vérification des ingrédients terminée par le serveur.",
+backendRoutineCompleted: "Recommandation de routine terminée par le serveur.",
+
+backendAnalysisError:
+  "Le serveur n’est pas disponible pour le moment, ou la requête a échoué. Veuillez vérifier que le serveur backend est lancé.",
+backendProductError:
+  "Le serveur n’est pas disponible pour le moment, ou la requête d’analyse du produit a échoué. Veuillez vérifier que le serveur backend est lancé.",
+backendIngredientError:
+  "Le serveur n’est pas disponible pour le moment. Veuillez vérifier que le serveur backend est lancé.",
+backendRoutineError:
+  "Le serveur n’est pas disponible pour le moment, ou la requête de création de routine a échoué. Veuillez vérifier que le serveur backend est lancé.",
+
+pleaseEnterIngredient: "Veuillez entrer au moins un ingrédient.",
+pleaseSelectRoutineSkinType: "Veuillez sélectionner votre type de peau.",
+pleaseSelectMainConcernAlert: "Veuillez sélectionner la préoccupation principale.",
+
+interactionAnalysisType: "Analyse des interactions",
+productAnalyzerType: "Analyseur de produit",
+ingredientCheckerType: "Vérificateur d’ingrédients",
+routineBuilderType: "Créateur de routine",
+
+backendProductAnalyzer: "Analyse du produit par le serveur",
+backendProductSourceMessage: "Les détails du produit ont été retournés par l’endpoint /scan du serveur.",
+backendResult: "Résultat du serveur",
+backendRoutineRecommendation: "Recommandation de routine du serveur",
+backendRoutineRecommendationCompleted: "Recommandation de routine terminée par le serveur.",
+
+ingredientCaution: "Précaution ingrédient",
+ingredientBackendReview: "Vérification des ingrédients par le serveur",
+
+enteredIngredients: "Ingrédients saisis",
+noStrongSynergy: "Aucune forte synergie détectée dans cette logique simplifiée.",
+noStrongConflict: "Aucun conflit direct fort détecté dans cette logique simplifiée.",
+noStrengthData: "Aucune donnée de puissance disponible pour les ingrédients saisis.",
+noCautionData: "Aucune donnée de précaution disponible pour les ingrédients saisis.",
+noPhNote: "Aucune note liée au pH disponible pour ces ingrédients.",
+notFoundInLibrary: "Introuvable dans la bibliothèque simplifiée actuelle",
+
+footerDevelopedBy: "Développé par Joumana Sakr, Julia Issa et Mariam Charkawi",
+footerDescription: "Assistant IA pour la compatibilité des ingrédients de soin",
       appName: "Skincare AI",
       productLabel: "Produit",
       productDetails: "Détails du produit",
@@ -300,19 +523,66 @@ recommendations: "Recommandations",
 
   const [skinType, setSkinType] = useState("");
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+const [analysisError, setAnalysisError] = useState("");
+const [profileSensitivity, setProfileSensitivity] = useState("");
+const [profileAge, setProfileAge] = useState("");
+const [profileConcerns, setProfileConcerns] = useState([]);
 
   const [singleProduct, setSingleProduct] = useState({
     name: "",
     brand: "",
   });
   const [productAnalysisResult, setProductAnalysisResult] = useState(null);
+  const [productLoading, setProductLoading] = useState(false);
+const [productError, setProductError] = useState("");
 
   const [ingredientInput, setIngredientInput] = useState("");
   const [ingredientCheckerResult, setIngredientCheckerResult] = useState(null);
+  const [ingredientLoading, setIngredientLoading] = useState(false);
+const [ingredientError, setIngredientError] = useState("");
 
   const [routineSkinType, setRoutineSkinType] = useState("");
   const [routineConcern, setRoutineConcern] = useState("");
   const [routineResult, setRoutineResult] = useState(null);
+  const [routineLoading, setRoutineLoading] = useState(false);
+const [routineError, setRoutineError] = useState("");
+const [showHistory, setShowHistory] = useState(false);
+
+const [historyItems, setHistoryItems] = useState(() => {
+  try {
+    const savedHistory = localStorage.getItem("skincareHistory");
+    return savedHistory ? JSON.parse(savedHistory) : [];
+  } catch (error) {
+    console.error("Failed to load history:", error);
+    return [];
+  }
+});
+
+useEffect(() => {
+  localStorage.setItem("skincareHistory", JSON.stringify(historyItems));
+}, [historyItems]);
+
+const addHistoryItem = ({ type, title, summary, status }) => {
+  const newHistoryItem = {
+    id:
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`,
+    type,
+    title,
+    summary,
+    status,
+    createdAt: new Date().toLocaleString(),
+  };
+
+  setHistoryItems((prevItems) => [newHistoryItem, ...prevItems].slice(0, 10));
+};
+
+const clearHistory = () => {
+  localStorage.removeItem("skincareHistory");
+  setHistoryItems([]);
+};
 
   const ingredientLibrary = useMemo(
     () => ({
@@ -491,7 +761,8 @@ recommendations: "Recommandations",
           "Avoid combining with strong acids in the same routine.",
           "Use sunscreen during daytime.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Retinol+Serum",
+       imageEmoji: "🧴",
+imageBg: "#F3F0FF",
       },
       {
         name: "Vitamin C Bright Serum",
@@ -505,7 +776,8 @@ recommendations: "Recommandations",
           "Sensitive skin may need gradual introduction.",
           "Do not overload the same routine with many strong actives.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Vitamin+C+Serum",
+       imageEmoji: "🍊",
+imageBg: "#FFF4E6",
       },
       {
         name: "Barrier Repair Cream",
@@ -522,7 +794,8 @@ recommendations: "Recommandations",
         ],
         activeIngredients: ["Ceramides"],
         warnings: ["No major ingredient warning detected in this simplified dataset preview."],
-        image: "https://via.placeholder.com/260x180?text=Barrier+Cream",
+       imageEmoji: "🛡️",
+imageBg: "#EEFBEF",
       },
       {
         name: "Salicylic Clear Cleanser",
@@ -536,7 +809,8 @@ recommendations: "Recommandations",
           "Can feel drying if the rest of the routine is too harsh.",
           "Avoid too many exfoliating steps in the same routine.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Salicylic+Cleanser",
+       imageEmoji: "🫧",
+imageBg: "#EAF7FF",
       },
       {
         name: "Hydrating HA Essence",
@@ -547,7 +821,8 @@ recommendations: "Recommandations",
         ingredients: ["Hyaluronic Acid", "Glycerin", "Panthenol", "Allantoin"],
         activeIngredients: ["Hyaluronic Acid"],
         warnings: ["No major hard warning detected in this simplified dataset preview."],
-        image: "https://via.placeholder.com/260x180?text=Hydrating+Essence",
+      imageEmoji: "💧",
+imageBg: "#EAFBFF",
       },
     ],
     []
@@ -567,7 +842,8 @@ recommendations: "Recommandations",
           "External-source preview only.",
           "Contains multiple active ingredients and may be strong for sensitive skin.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Effaclar+Serum",
+      imageEmoji: "✨",
+imageBg: "#FFF0F6",
       },
       {
         name: "CeraVe Resurfacing Retinol Serum",
@@ -581,7 +857,8 @@ recommendations: "Recommandations",
           "External-source preview only.",
           "Retinol products need gradual introduction and sunscreen support.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Retinol+Serum",
+       imageEmoji: "🧴",
+imageBg: "#F3F0FF",
       },
       {
         name: "The Ordinary Niacinamide 10% + Zinc 1%",
@@ -595,7 +872,8 @@ recommendations: "Recommandations",
           "External-source preview only.",
           "Some users may feel irritation with high niacinamide percentages.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Niacinamide",
+        imageEmoji: "🌿",
+imageBg: "#F0FAF4",
       },
       {
         name: "SkinCeuticals C E Ferulic",
@@ -609,7 +887,8 @@ recommendations: "Recommandations",
           "External-source preview only.",
           "Vitamin C formulas may be irritating for very sensitive skin.",
         ],
-        image: "https://via.placeholder.com/260x180?text=External+Vitamin+C",
+       imageEmoji: "🍊",
+imageBg: "#FFF4E6",
       },
     ],
     []
@@ -723,7 +1002,8 @@ recommendations: "Recommandations",
           "This is only a name-based fallback.",
           "Do not rely on this as the final product truth.",
         ],
-        image: "https://via.placeholder.com/260x180?text=Fallback+Preview",
+       imageEmoji: "🔎",
+imageBg: "#F7F3FF",
       },
     };
   };
@@ -831,8 +1111,17 @@ const sourceNotes = resolvedProducts
       sourceNotes,
     };
   };
+const getAgeGroup = (age) => {
+  const numericAge = Number(age);
 
-  const handleAnalyze = () => {
+  if (!numericAge) return null;
+  if (numericAge < 18) return "teen";
+  if (numericAge < 30) return "young_adult";
+  if (numericAge < 60) return "adult";
+
+  return "senior";
+};
+  const handleAnalyze = async () => {
     const filledProducts = products.filter(
       (product) => product.name.trim() !== "" || product.brand.trim() !== ""
     );
@@ -847,12 +1136,83 @@ const sourceNotes = resolvedProducts
       return;
     }
 
-    const resolvedProducts = filledProducts.map((item) =>
-      searchProductWithFallback(item.name, item.brand)
-    );
+    setAnalysisLoading(true);
+    setAnalysisError("");
+    setAnalysisResult(null);
 
-    const result = buildInteractionAnalysis(resolvedProducts, skinType);
-    setAnalysisResult(result);
+    try {
+const payload = buildScanPayload({
+  products: filledProducts,
+  skinType,
+  sensitivity: profileSensitivity,
+  ageGroup: getAgeGroup(profileAge),
+  concerns: profileConcerns,
+});
+
+      const backendResult = await scanProducts(payload);
+addHistoryItem({
+  type: "Interaction Analysis",
+  title: filledProducts.map((product) => product.name).join(" + "),
+  summary:
+    backendResult.decision ||
+    backendResult.summary ||
+    "Interaction analysis completed by backend.",
+  status: backendResult.risk_level || "completed",
+});
+      setAnalysisResult({
+        status: backendResult.risk_level || backendResult.decision || "Result",
+        icon:
+          backendResult.risk_level === "high"
+            ? "❌"
+            : backendResult.risk_level === "medium"
+            ? "⚠️"
+            : "✅",
+        score:
+          backendResult.risk_level === "high"
+            ? 35
+            : backendResult.risk_level === "medium"
+            ? 70
+            : 90,
+        summary:
+          backendResult.decision ||
+          backendResult.summary ||
+          "Backend analysis completed.",
+        why: backendResult.explanations || [],
+        recommendations: backendResult.recommendations || [],
+        products: filledProducts.map((product, index) => ({
+          source: "backend",
+          product: {
+            name: product.name || `Product ${index + 1}`,
+            brand: product.brand || "",
+          },
+        })),
+        skinType,
+        sourceNotes: [],
+        bg: "#EEFBEF",
+        border: "#A7E3AE",
+        titleColor: "#2E7D32",
+        badgeBg: "#D6F5D9",
+        badgeColor: "#1F5C24",
+        sectionBg: "#DFF6E2",
+        unknownProducts: backendResult.unknown_products || [],
+        rawBackendResult: backendResult,
+      });
+    }  catch (error) {
+  console.error(error);
+
+  addHistoryItem({
+    type: "Interaction Analysis",
+    title: filledProducts.map((product) => product.name).join(" + "),
+    summary: "Backend was not available, so the analysis could not be completed.",
+    status: "Backend unavailable",
+  });
+
+  setAnalysisError(
+    "Backend is not available yet, or the request failed. Please check if the backend server is running."
+  );
+} finally {
+      setAnalysisLoading(false);
+    }
   };
 
   const handleSingleProductChange = (field, value) => {
@@ -862,86 +1222,110 @@ const sourceNotes = resolvedProducts
     }));
   };
 
-  const handleSingleProductAnalyze = () => {
-    if (!singleProduct.name.trim()) {
-       alert(t.enterProductNameAlert);
-      return;
-    }
+const handleSingleProductAnalyze = async () => {
+  if (!singleProduct.name.trim()) {
+    alert(t.enterProductNameAlert);
+    return;
+  }
 
-    const searchResult = searchProductWithFallback(singleProduct.name, singleProduct.brand);
-    const matchedProduct = searchResult.product;
-    const detectedActiveObjects = detectIngredientObjectsFromList(
-      matchedProduct.ingredients || []
-    );
-    const warnings = [...(matchedProduct.warnings || [])];
+  setProductLoading(true);
+  setProductError("");
+  setProductAnalysisResult(null);
 
-    if (
-      (matchedProduct.ingredients || []).some((ing) =>
-        ing.toLowerCase().includes("retinol")
-      )
-    ) {
-      warnings.push("Be careful with AHA/BHA or benzoyl peroxide in the same routine.");
-    }
+  try {
+const payload = buildScanPayload({
+  products: [singleProduct],
+  skinType: null,
+  sensitivity: profileSensitivity,
+  ageGroup: getAgeGroup(profileAge),
+  concerns: profileConcerns,
+});
+
+    const backendResult = await scanProducts(payload);
+addHistoryItem({
+  type: "Product Analyzer",
+  title: singleProduct.name,
+  summary:
+    backendResult.summary ||
+    backendResult.decision ||
+    "Product analysis completed by backend.",
+  status: "completed",
+});
+    const returnedProduct =
+      backendResult.products?.[0] ||
+      backendResult.product ||
+      null;
 
     setProductAnalysisResult({
-      status:
-        searchResult.source === "local"
-          ? "Dataset-Based Product Analyzer"
-          : searchResult.source === "external"
-          ? "External-Source Product Analyzer"
-          : "Name-Based Product Analyzer",
-      icon:
-        searchResult.source === "local"
-          ? "🧴"
-          : searchResult.source === "external"
-          ? "🌐"
-          : "🔎",
-      source: searchResult.source,
-      sourceMessage:
-        searchResult.source === "local"
-          ? "Matched from the local dataset."
-          : searchResult.message,
+      status: "Backend Product Analyzer",
+      icon: "🧴",
+      source: "backend",
+      sourceMessage: "Product details returned from backend /scan endpoint.",
       summary:
-        searchResult.source === "local"
-          ? "This product was matched from the current local dataset and its details are displayed below."
-          : searchResult.source === "external"
-          ? "This product was not found locally, so an external-source preview was used as fallback."
-          : "No exact local or external preview match was found, so this result uses name-based fallback only.",
-      product: matchedProduct,
-      category: matchedProduct.category,
-      concern: matchedProduct.concern,
-      skinTypes: matchedProduct.skinTypes,
-      ingredients: matchedProduct.ingredients,
-      activeIngredients: matchedProduct.activeIngredients,
-      detectedIngredientObjects: detectedActiveObjects,
-      warnings,
-      image: matchedProduct.image,
-      bg:
-        searchResult.source === "local"
-          ? "#F3F0FF"
-          : searchResult.source === "external"
-          ? "#EAF4FF"
-          : "#FFF9E6",
-      border:
-        searchResult.source === "local"
-          ? "#D7CCFF"
-          : searchResult.source === "external"
-          ? "#B9D8FF"
-          : "#FFD580",
-      titleColor:
-        searchResult.source === "local"
-          ? "#6C63FF"
-          : searchResult.source === "external"
-          ? "#1565C0"
-          : "#C77D00",
-      sectionBg:
-        searchResult.source === "local"
-          ? "#F7F4FF"
-          : searchResult.source === "external"
-          ? "#F1F8FF"
-          : "#FFF3CC",
+        backendResult.summary ||
+        backendResult.decision ||
+        "Backend product analysis completed.",
+      product: {
+        name:
+          returnedProduct?.name ||
+          singleProduct.name ||
+          t.unnamedProduct,
+        brand:
+          returnedProduct?.brand ||
+          singleProduct.brand ||
+          t.noBrand,
+      },
+      category:
+        returnedProduct?.category ||
+        backendResult.category ||
+        "Backend result",
+      concern:
+        returnedProduct?.concern ||
+        backendResult.concerns ||
+        profileConcerns ||
+        [],
+      skinTypes:
+        returnedProduct?.skinTypes ||
+        returnedProduct?.skin_types ||
+        [],
+      ingredients:
+        returnedProduct?.ingredients ||
+        returnedProduct?.full_ingredients_text?.split(",") ||
+        backendResult.ingredients ||
+        [],
+      activeIngredients:
+        returnedProduct?.activeIngredients ||
+        returnedProduct?.interaction_relevant_ingredients ||
+        [],
+      detectedIngredientObjects: [],
+      warnings:
+        backendResult.warnings ||
+        backendResult.explanations ||
+        [],
+      image: "",
+      bg: "#F3F0FF",
+      border: "#D7CCFF",
+      titleColor: "#6C63FF",
+      sectionBg: "#F7F4FF",
+      rawBackendResult: backendResult,
     });
-  };
+} catch (error) {
+  console.error(error);
+
+  addHistoryItem({
+    type: "Product Analyzer",
+    title: singleProduct.name,
+    summary: "Backend was not available, so the product analysis could not be completed.",
+    status: "Backend unavailable",
+  });
+
+  setProductError(
+    "Backend is not available yet, or the product analysis request failed. Please check if the backend server is running."
+  );
+} finally {
+    setProductLoading(false);
+  }
+};
 
   const parseIngredientInput = (value) => {
     return value
@@ -1022,227 +1406,211 @@ const sourceNotes = resolvedProducts
     return { synergies, conflicts, developerNotes };
   };
 
-  const handleIngredientCheck = () => {
-    const parsedIngredients = parseIngredientInput(ingredientInput);
+ const handleIngredientCheck = async () => {
+  const parsedIngredients = parseIngredientInput(ingredientInput);
 
-    if (parsedIngredients.length === 0) {
-      alert("Please enter at least one ingredient.");
-      return;
-    }
+  if (parsedIngredients.length === 0) {
+    alert("Please enter at least one ingredient.");
+    return;
+  }
 
-    const matchedEntries = findIngredientMatches(parsedIngredients);
-    const foundCount = matchedEntries.filter((entry) => entry.matched).length;
+  setIngredientLoading(true);
+  setIngredientError("");
+  setIngredientCheckerResult(null);
 
-    const pairInsights = buildPairInsights(matchedEntries);
+  try {
+    const payload = {
+      products: [
+        {
+          id: "ingredient-checker",
+          name: "Ingredient Checker Input",
+          ingredients_text: parsedIngredients.join(", "),
+        },
+      ],
+profile: {
+  skin_type: skinType || null,
+  sensitivity: profileSensitivity || null,
+  age_group: getAgeGroup(profileAge),
+  concerns: profileConcerns || [],
+},
+    };
 
-    const strengths = matchedEntries
-      .filter((entry) => entry.matched)
-      .map((entry) => `${entry.matched.label}: ${entry.matched.strength}`);
-
-    const cautionFlags = matchedEntries
-      .filter((entry) => entry.matched)
-      .map((entry) => `${entry.matched.label}: ${entry.matched.cautionLevel}`);
-
-    const notes = matchedEntries.flatMap((entry) =>
-      entry.matched
-        ? [`${entry.matched.label}: ${entry.matched.notes.join(" ")}`]
-        : [`${entry.typed}: Not found in the current simplified ingredient library.`]
-    );
-
-    const optimalPH = matchedEntries
-      .filter((entry) => entry.matched)
-      .map((entry) => `${entry.matched.label}: ${entry.matched.optimalPH}`);
-
+    const backendResult = await scanProducts(payload);
+addHistoryItem({
+  type: "Ingredient Checker",
+  title: parsedIngredients.join(", "),
+  summary:
+    backendResult.summary ||
+    backendResult.decision ||
+    "Ingredient check completed by backend.",
+  status: backendResult.risk_level || "completed",
+});
     setIngredientCheckerResult({
       typedIngredients: parsedIngredients,
-      matchedEntries,
-      foundCount,
-      synergies: pairInsights.synergies,
-      conflicts: pairInsights.conflicts,
-      developerNotes: pairInsights.developerNotes,
-      strengths,
-      cautionFlags,
-      notes,
-      optimalPH,
-      bg: pairInsights.conflicts.length > 0 ? "#FFF1F1" : "#EEFBEF",
-      border: pairInsights.conflicts.length > 0 ? "#F5B5B5" : "#A7E3AE",
-      titleColor: pairInsights.conflicts.length > 0 ? "#C62828" : "#2E7D32",
-sectionBg: pairInsights.conflicts.length > 0 ? "#FFE7E7" : "#EDF9F0",
+      matchedEntries: parsedIngredients.map((ingredient) => ({
+        typed: ingredient,
+        matched: null,
+      })),
+      foundCount: parsedIngredients.length,
+      synergies: backendResult.synergies || [],
+      conflicts: backendResult.issues?.map((issue) => issue.message) || [],
+      developerNotes:
+        backendResult.explanations ||
+        backendResult.recommendations ||
+        [],
+      strengths: backendResult.strengths || [],
+      cautionFlags:
+        backendResult.cautions ||
+        backendResult.warnings ||
+        [],
+      notes:
+        backendResult.notes ||
+        backendResult.summary
+          ? [backendResult.summary]
+          : [],
+      optimalPH: backendResult.optimalPH || [],
+      bg:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#FFF1F1"
+          : "#EEFBEF",
+      border:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#F5B5B5"
+          : "#A7E3AE",
+      titleColor:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#C62828"
+          : "#2E7D32",
+      sectionBg:
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
+          ? "#FFE7E7"
+          : "#EDF9F0",
       status:
-        pairInsights.conflicts.length > 0
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
           ? "Ingredient Caution"
-          : pairInsights.synergies.length > 0
-          ? "Ingredient Match Review"
-          : "Ingredient Logic Review",
+          : "Ingredient Backend Review",
       icon:
-        pairInsights.conflicts.length > 0
+        backendResult.risk_level === "high" ||
+        (backendResult.issues && backendResult.issues.length > 0)
           ? "⚠️"
-          : pairInsights.synergies.length > 0
-          ? "🧪"
-          : "📋",
+          : "🧪",
+      rawBackendResult: backendResult,
     });
-  };
+} catch (error) {
+  console.error(error);
 
-  const handleRoutineBuild = () => {
-    if (!routineSkinType) {
-      alert("Please select your skin type.");
-      return;
-    }
+  addHistoryItem({
+    type: "Ingredient Checker",
+    title: parsedIngredients.join(", "),
+    summary: "Backend was not available, so the ingredient check could not be completed.",
+    status: "Backend unavailable",
+  });
 
-    if (!routineConcern) {
-      alert("Please select your main concern.");
-      return;
-    }
+  setIngredientError(
+    "Backend is not available yet. Please make sure the backend server is running."
+  );
+} finally {
+    setIngredientLoading(false);
+  }
+};
+   
 
-    let result;
+ const handleRoutineBuild = async () => {
+  if (!routineSkinType) {
+    alert("Please select your skin type.");
+    return;
+  }
 
-    if (routineConcern === "acne") {
-      result = {
-        title: "Acne-Focused Routine",
-        summary:
-          "This routine is designed to help manage breakouts while keeping the skin barrier supported.",
-        morningRoutine: [
-          "Gentle Cleanser",
-          "Niacinamide Serum",
-          "Lightweight Moisturizer",
-          "Oil-free Sunscreen",
-        ],
-        nightRoutine: [
-          "Gentle Cleanser",
-          "Treatment Product (such as salicylic acid or retinol depending on tolerance)",
-          "Barrier-support Moisturizer",
-        ],
-        suggestedProducts: [
-          "Gentle cleanser for acne-prone skin",
-          "Niacinamide serum",
-          "Non-comedogenic moisturizer",
-          "Broad-spectrum sunscreen",
-        ],
-        usageOrder: [
-          "Cleanser",
-          "Treatment/Serum",
-          "Moisturizer",
-          "Sunscreen in the morning only",
-        ],
-        aiNotes: [
-          "Do not introduce multiple strong actives at once.",
-          "If irritation appears, reduce frequency of treatment products.",
-          "Hydration and barrier support are still important even for oily or acne-prone skin.",
-        ],
-        bg: "#EEFBEF",
-        border: "#A7E3AE",
-        titleColor: "#2E7D32",
-        sectionBg: "#DFF6E2",
-      };
-    } else if (routineConcern === "dryness") {
-      result = {
-        title: "Hydration & Barrier Routine",
-        summary:
-          "This routine is designed to reduce dryness and support the skin barrier.",
-        morningRoutine: [
-          "Hydrating Cleanser",
-          "Hyaluronic Acid Serum",
-          "Rich Moisturizer",
-          "Sunscreen",
-        ],
-        nightRoutine: [
-          "Hydrating Cleanser",
-          "Barrier-support Serum or Essence",
-          "Rich Moisturizer or Night Cream",
-        ],
-        suggestedProducts: [
-          "Hydrating cleanser",
-          "Hyaluronic acid serum",
-          "Ceramide moisturizer",
-          "Gentle sunscreen",
-        ],
-        usageOrder: [
-          "Cleanser",
-          "Hydrating serum",
-          "Moisturizer",
-          "Sunscreen in the morning only",
-        ],
-        aiNotes: [
-          "Avoid over-exfoliating while the skin is dry.",
-          "Barrier-support ingredients like ceramides and glycerin are useful.",
-          "Consistency matters more than using too many products.",
-        ],
-        bg: "#F3F0FF",
-        border: "#D7CCFF",
-        titleColor: "#6C63FF",
-        sectionBg: "#F7F4FF",
-      };
-    } else if (routineConcern === "pigmentation") {
-      result = {
-        title: "Brightening Routine",
-        summary:
-          "This routine is designed to help with dullness and uneven tone while keeping irritation controlled.",
-        morningRoutine: [
-          "Gentle Cleanser",
-          "Vitamin C Serum",
-          "Moisturizer",
-          "Sunscreen",
-        ],
-        nightRoutine: [
-          "Gentle Cleanser",
-          "Brightening or renewal-focused treatment",
-          "Moisturizer",
-        ],
-        suggestedProducts: [
-          "Vitamin C serum",
-          "Gentle moisturizer",
-          "Daily sunscreen",
-          "Night treatment for skin renewal",
-        ],
-        usageOrder: [
-          "Cleanser",
-          "Treatment/Serum",
-          "Moisturizer",
-          "Sunscreen in the morning only",
-        ],
-        aiNotes: [
-          "Sunscreen is essential in any pigmentation-focused routine.",
-          "Do not over-layer strong brightening actives if your skin is sensitive.",
-          "Results usually need time and consistency.",
-        ],
-bg: "#FBF4FF",
-border: "#E2CFF8",
-titleColor: "#8A63D2",
-sectionBg: "#F6EEFF",
-      };
-    } else {
-      result = {
-        title: "General Balanced Routine",
-        summary:
-          "This routine is designed as a simple starting structure for everyday skin support.",
-        morningRoutine: ["Gentle Cleanser", "Light Serum", "Moisturizer", "Sunscreen"],
-        nightRoutine: ["Gentle Cleanser", "Targeted Serum if needed", "Moisturizer"],
-        suggestedProducts: [
-          "Gentle cleanser",
-          "Basic serum",
-          "Daily moisturizer",
-          "Broad-spectrum sunscreen",
-        ],
-        usageOrder: ["Cleanser", "Serum", "Moisturizer", "Sunscreen in the morning only"],
-        aiNotes: [
-          "A simple routine is often better than an overloaded one.",
-          "Adjust product strength based on your skin tolerance.",
-          "Later, this tab can become much stronger when connected to the backend dataset.",
-        ],
-        bg: "#EEFBEF",
-        border: "#A7E3AE",
-        titleColor: "#2E7D32",
-        sectionBg: "#DFF6E2",
-      };
-    }
+  if (!routineConcern) {
+    alert("Please select your main concern.");
+    return;
+  }
 
+  setRoutineLoading(true);
+  setRoutineError("");
+  setRoutineResult(null);
+
+  try {
+const payload = {
+  products: [],
+  request_type: "routine_builder",
+  profile: {
+    skin_type: routineSkinType,
+    sensitivity: profileSensitivity || null,
+    age_group: getAgeGroup(profileAge),
+    concerns: [routineConcern, ...profileConcerns],
+  },
+};
+
+    const backendResult = await scanProducts(payload);
+addHistoryItem({
+  type: "Routine Builder",
+  title: `${routineSkinType} skin - ${routineConcern}`,
+  summary:
+    backendResult.summary ||
+    backendResult.routine_title ||
+    "Routine recommendation completed by backend.",
+  status: "completed",
+});
     setRoutineResult({
-      ...result,
+      title:
+        backendResult.title ||
+        backendResult.routine_title ||
+        "Backend Routine Recommendation",
+      summary:
+        backendResult.summary ||
+        "Backend routine recommendation completed.",
+      morningRoutine:
+        backendResult.morningRoutine ||
+        backendResult.morning_routine ||
+        [],
+      nightRoutine:
+        backendResult.nightRoutine ||
+        backendResult.night_routine ||
+        [],
+      suggestedProducts:
+        backendResult.suggestedProducts ||
+        backendResult.suggested_products ||
+        [],
+      usageOrder:
+        backendResult.usageOrder ||
+        backendResult.usage_order ||
+        [],
+      aiNotes:
+        backendResult.aiNotes ||
+        backendResult.recommendations ||
+        backendResult.notes ||
+        [],
       skinType: routineSkinType,
       concern: routineConcern,
+      bg: "#FBF4FF",
+      border: "#E2CFF8",
+      titleColor: "#8A63D2",
+      sectionBg: "#F6EEFF",
+      rawBackendResult: backendResult,
     });
-  };
+} catch (error) {
+  console.error(error);
 
+  addHistoryItem({
+    type: "Routine Builder",
+    title: `${routineSkinType} skin - ${routineConcern}`,
+    summary: "Backend was not available, so the routine could not be generated.",
+    status: "Backend unavailable",
+  });
+
+  setRoutineError(
+    "Backend is not available yet, or the routine builder request failed. Please check if the backend server is running."
+  );
+} finally {
+    setRoutineLoading(false);
+  }
+};
 const tabStyle = (tab) => ({
   padding: "10px 20px",
   borderRadius: "30px",
@@ -1333,7 +1701,16 @@ const infoBlockStyle = (bg) => ({
           boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       >
-        <h2 style={{ margin: 0 }}>{t.appName}</h2>
+        <h2
+  style={{
+    margin: 0,
+    color: "#2F2A45",
+    fontWeight: "700",
+    fontSize: "22px",
+  }}
+>
+  {t.appName}
+</h2>
 
         <div>
 <select
@@ -1350,22 +1727,181 @@ const infoBlockStyle = (bg) => ({
   <option value="fr">Français</option>
 </select>
 
-          <button
-            style={{
-              marginLeft: "10px",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              border: "none",
-              background: "#6C63FF",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
-           {t.history}
-          </button>
+<button
+  onClick={() => setShowHistory((prev) => !prev)}
+  style={{
+    marginLeft: "10px",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#6C63FF",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600",
+  }}
+>
+  {t.history}
+</button>
         </div>
       </div>
+{showHistory && (
+  <div
+    style={{
+      maxWidth: "900px",
+      margin: "24px auto",
+      padding: "0 20px",
+    }}
+  >
+    <div
+      style={{
+        background: "linear-gradient(145deg, #ffffff, #f7f4ff)",
+        border: "1px solid rgba(108,99,255,0.16)",
+        borderRadius: "22px",
+        padding: "22px",
+        boxShadow: "0 10px 26px rgba(108,99,255,0.12)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginBottom: "18px",
+        }}
+      >
+        <div>
+          <h3
+            style={{
+              margin: 0,
+              color: "#2F2A45",
+              fontSize: "22px",
+              fontWeight: "700",
+            }}
+          >
+            🕘 Analysis History
+          </h3>
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: "#7C7698",
+              fontSize: "14px",
+            }}
+          >
+            Saved locally on this browser.
+          </p>
+        </div>
 
+        <button
+          onClick={clearHistory}
+          disabled={historyItems.length === 0}
+          style={{
+            padding: "9px 14px",
+            borderRadius: "12px",
+            border: "1px solid #E2CFF8",
+            background: historyItems.length === 0 ? "#F3F0FF" : "#FFF1F1",
+            color: historyItems.length === 0 ? "#9A94AD" : "#C62828",
+            cursor: historyItems.length === 0 ? "not-allowed" : "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Clear History
+        </button>
+      </div>
+
+      {historyItems.length === 0 ? (
+        <div
+          style={{
+            padding: "18px",
+            borderRadius: "16px",
+            background: "#F5F4FF",
+            color: "#6C63FF",
+            fontWeight: "600",
+            textAlign: "center",
+          }}
+        >
+          No saved analyses yet.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: "12px" }}>
+          {historyItems.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                background: "white",
+                border: "1px solid rgba(108,99,255,0.12)",
+                borderRadius: "16px",
+                padding: "16px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                  marginBottom: "8px",
+                }}
+              >
+                <strong style={{ color: "#2F2A45" }}>
+                  {item.type}
+                </strong>
+
+                <span
+                  style={{
+                    color: "#7C7698",
+                    fontSize: "13px",
+                  }}
+                >
+                  {item.createdAt}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  color: "#6C63FF",
+                  fontWeight: "700",
+                  marginBottom: "6px",
+                }}
+              >
+                {item.title}
+              </div>
+
+              <div
+                style={{
+                  color: "#4B4563",
+                  lineHeight: "1.6",
+                  fontSize: "14px",
+                }}
+              >
+                {item.summary}
+              </div>
+
+              {item.status && (
+                <div
+                  style={{
+                    display: "inline-block",
+                    marginTop: "10px",
+                    padding: "6px 10px",
+                    borderRadius: "999px",
+                    background: "#F3F0FF",
+                    color: "#6C63FF",
+                    fontSize: "13px",
+                    fontWeight: "700",
+                  }}
+                >
+                  {item.status}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+)}
 <div
  style={{
   position: "relative",
@@ -1592,6 +2128,105 @@ backdropFilter: "blur(6px)",
 <option value="Sensitive">{t.sensitive}</option>
               </select>
             </div>
+            <div
+  style={{
+    background: "rgba(108,99,255,0.06)",
+    border: "1px solid rgba(108,99,255,0.12)",
+    borderRadius: "18px",
+    padding: "18px",
+    marginBottom: "25px",
+  }}
+>
+  <h3
+    style={{
+      marginTop: 0,
+      marginBottom: "14px",
+      color: "#4B4563",
+      textAlign: "center",
+    }}
+  >
+    {t.userProfile}
+  </h3>
+
+  <div style={{ marginBottom: "14px" }}>
+    <label style={{ fontWeight: "600", color: "#4B4563" }}>
+     {t.sensitivity}
+    </label>
+    <select
+      value={profileSensitivity}
+      onChange={(e) => setProfileSensitivity(e.target.value)}
+      style={inputStyle}
+    >
+      <option value="">{t.selectSensitivity}</option>
+<option value="low">{t.low}</option>
+<option value="medium">{t.medium}</option>
+<option value="high">{t.high}</option>
+    </select>
+  </div>
+
+  <div style={{ marginBottom: "14px" }}>
+    <label style={{ fontWeight: "600", color: "#4B4563" }}>
+      {t.age}
+    </label>
+    <input
+      type="number"
+      min="10"
+      max="100"
+      placeholder={t.enterAge}
+      value={profileAge}
+      onChange={(e) => setProfileAge(e.target.value)}
+      style={inputStyle}
+    />
+  </div>
+
+  <div>
+    <label style={{ fontWeight: "600", color: "#4B4563" }}>
+      {t.concerns}
+    </label>
+
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "10px",
+        marginTop: "10px",
+      }}
+    >
+      {["acne", "dryness", "pigmentation", "sensitivity"].map((concern) => (
+        <label
+          key={concern}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "white",
+            border: "1px solid #dcd6ff",
+            borderRadius: "999px",
+            padding: "8px 12px",
+            color: "#4B4563",
+            fontWeight: "500",
+            cursor: "pointer",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={profileConcerns.includes(concern)}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setProfileConcerns([...profileConcerns, concern]);
+              } else {
+                setProfileConcerns(
+                  profileConcerns.filter((item) => item !== concern)
+                );
+              }
+            }}
+          />
+          {concern}
+        </label>
+      ))}
+    </div>
+  </div>
+</div>
 
             <div style={{ textAlign: "center", marginBottom: "40px" }}>
 <button
@@ -1618,7 +2253,38 @@ backdropFilter: "blur(6px)",
   {t.analyze}
 </button>
             </div>
+{analysisLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Analyzing products with backend...
+  </div>
+)}
 
+{analysisError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {analysisError}
+  </div>
+)}
 {analysisResult && (
   <div
     style={{
@@ -1947,7 +2613,38 @@ backdropFilter: "blur(6px)",
   {t.analyzeProduct}
 </button>
             </div>
+{productLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Analyzing product with backend...
+  </div>
+)}
 
+{productError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {productError}
+  </div>
+)}
 {productAnalysisResult && (
   <div
     style={{
@@ -2340,7 +3037,38 @@ backdropFilter: "blur(6px)",
   {t.checkIngredients}
 </button>
             </div>
+{ingredientLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Checking ingredients with backend...
+  </div>
+)}
 
+{ingredientError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {ingredientError}
+  </div>
+)}
             {ingredientCheckerResult && (
               <div
                 style={{
@@ -2692,6 +3420,38 @@ backdropFilter: "blur(6px)",
   {t.buildMyRoutine}
 </button>
     </div>
+    {routineLoading && (
+  <div
+    style={{
+      textAlign: "center",
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#F5F4FF",
+      color: "#6C63FF",
+      fontWeight: "600",
+      marginBottom: "20px",
+    }}
+  >
+    Building routine with backend...
+  </div>
+)}
+
+{routineError && (
+  <div
+    style={{
+      padding: "14px 18px",
+      borderRadius: "14px",
+      background: "#FFF1F1",
+      color: "#C62828",
+      border: "1px solid #F5B5B5",
+      fontWeight: "600",
+      marginBottom: "20px",
+      lineHeight: "1.6",
+    }}
+  >
+    {routineError}
+  </div>
+)}
 
     {routineResult && (
       <div
@@ -2894,6 +3654,26 @@ fontSize: "14px",
   </div>
 )}
       </div>
+      <footer
+  style={{
+    marginTop: "40px",
+    padding: "24px 20px",
+    textAlign: "center",
+    background: "#ffffff",
+    borderTop: "1px solid rgba(108,99,255,0.14)",
+    color: "#4B4563",
+    fontSize: "14px",
+    lineHeight: "1.7",
+  }}
+>
+  <strong>Skincare AI</strong>
+  <div>
+     Developed by Joumana Sakr, Julia Issa, and Mariam Charkawi
+  </div>
+  <div style={{ color: "#7C7698", marginTop: "4px" }}>
+    AI Assistant for Skincare Ingredient Compatibility
+  </div>
+</footer>
     </div>
   );
 }
