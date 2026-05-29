@@ -1150,35 +1150,34 @@ const payload = buildScanPayload({
 });
 
       const backendResult = await scanProducts(payload);
-addHistoryItem({
-  type: "Interaction Analysis",
-  title: filledProducts.map((product) => product.name).join(" + "),
-  summary:
-    backendResult.decision ||
-    backendResult.summary ||
-    "Interaction analysis completed by backend.",
-  status: backendResult.risk_level || "completed",
-});
+      const analysis = backendResult.analysis || backendResult;
+      const riskLevel = analysis.risk_level || "low";
+      const issues = analysis.issues || [];
+      const recommendations = analysis.recommendations || [];
+      const summary =
+        analysis.summary ||
+        backendResult.summary ||
+        "Backend analysis completed.";
+
+      addHistoryItem({
+        type: "Interaction Analysis",
+        title: filledProducts.map((product) => product.name).join(" + "),
+        summary,
+        status: riskLevel,
+      });
+
       setAnalysisResult({
-        status: backendResult.risk_level || backendResult.decision || "Result",
-        icon:
-          backendResult.risk_level === "high"
-            ? "❌"
-            : backendResult.risk_level === "medium"
-            ? "⚠️"
-            : "✅",
-        score:
-          backendResult.risk_level === "high"
-            ? 35
-            : backendResult.risk_level === "medium"
-            ? 70
-            : 90,
-        summary:
-          backendResult.decision ||
-          backendResult.summary ||
-          "Backend analysis completed.",
-        why: backendResult.explanations || [],
-        recommendations: backendResult.recommendations || [],
+        status:
+          riskLevel === "high"
+            ? t.conflict
+            : riskLevel === "medium"
+            ? t.caution
+            : "Result",
+        icon: riskLevel === "high" ? "!" : riskLevel === "medium" ? "i" : "OK",
+        score: riskLevel === "high" ? 35 : riskLevel === "medium" ? 70 : 90,
+        summary,
+        why: issues.map((issue) => issue.message),
+        recommendations,
         products: filledProducts.map((product, index) => ({
           source: "backend",
           product: {
@@ -1188,12 +1187,42 @@ addHistoryItem({
         })),
         skinType,
         sourceNotes: [],
-        bg: "#EEFBEF",
-        border: "#A7E3AE",
-        titleColor: "#2E7D32",
-        badgeBg: "#D6F5D9",
-        badgeColor: "#1F5C24",
-        sectionBg: "#DFF6E2",
+        bg:
+          riskLevel === "high"
+            ? "#FFF1F1"
+            : riskLevel === "medium"
+            ? "#FFF8E1"
+            : "#EEFBEF",
+        border:
+          riskLevel === "high"
+            ? "#F5B5B5"
+            : riskLevel === "medium"
+            ? "#F2D27A"
+            : "#A7E3AE",
+        titleColor:
+          riskLevel === "high"
+            ? "#C62828"
+            : riskLevel === "medium"
+            ? "#9A6B00"
+            : "#2E7D32",
+        badgeBg:
+          riskLevel === "high"
+            ? "#FFE1E1"
+            : riskLevel === "medium"
+            ? "#FFF0B8"
+            : "#D6F5D9",
+        badgeColor:
+          riskLevel === "high"
+            ? "#C62828"
+            : riskLevel === "medium"
+            ? "#7A5200"
+            : "#1F5C24",
+        sectionBg:
+          riskLevel === "high"
+            ? "#FFE7E7"
+            : riskLevel === "medium"
+            ? "#FFF7D6"
+            : "#DFF6E2",
         unknownProducts: backendResult.unknown_products || [],
         rawBackendResult: backendResult,
       });
