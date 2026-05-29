@@ -82,9 +82,15 @@ def call_analyzer_if_available(extractor_result: Dict[str, Any]) -> Any:
     if not analyzer_payload["products"]:
         return None
 
-    # Julia's service is not ready yet.
-    # Later this function will call ANALYZER_URL with analyzer_payload.
-    return None
+    try:
+        response = requests.post(ANALYZER_URL, json=analyzer_payload, timeout=30)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to call analyzer service: {str(exc)}"
+        )
 
 
 @app.post("/scan")
