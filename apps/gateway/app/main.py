@@ -1,6 +1,5 @@
 import os
-from typing import Optional, Any, Dict
-
+from typing import Optional, Any, Dict, List, Literal
 import requests
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +20,7 @@ app.add_middleware(
 
 EXTRACTOR_URL = os.getenv("EXTRACTOR_URL", "http://127.0.0.1:8001/extract")
 ANALYZER_URL = os.getenv("ANALYZER_URL", "http://127.0.0.1:8002/analyze")
+PERSONALIZER_URL = os.getenv("PERSONALIZER_URL", "http://127.0.0.1:8003/personalize")
 
 
 class ProductInput(BaseModel):
@@ -39,8 +39,15 @@ class ProductInput(BaseModel):
         return self
 
 
+class UserProfile(BaseModel):
+    skin_type: Optional[Literal["normal", "oily", "dry", "combination", "sensitive"]] = None
+    sensitivity: Optional[Literal["low", "medium", "high"]] = None
+    age_group: Optional[Literal["teen", "adult", "mature"]] = None
+    concerns: List[str] = []
+
 class ScanRequest(BaseModel):
     products: list[ProductInput]
+    profile: Optional[UserProfile] = None
     skin_type: Optional[str] = None
     sensitivity: Optional[str] = None
 
@@ -105,6 +112,28 @@ def call_analyzer_if_available(extractor_result: Dict[str, Any]) -> Any:
         )
 
 
+
+def call_personalizer_if_available(
+    analysis_result: Dict[str, Any],
+    profile: Optional[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    if analysis_result is None or profile is None:
+        return None
+
+    try:
+        response = requests.post(
+            PERSONALIZER_URL,
+            json={
+                "analysis": analysis_result,
+                "profile": profile,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException:
+        return None
+
 @app.post("/scan")
 def scan(payload: ScanRequest):
     products = [product.model_dump() for product in payload.products]
@@ -112,8 +141,13 @@ def scan(payload: ScanRequest):
     extractor_result = call_extractor(products)
     analysis_result = call_analyzer_if_available(extractor_result)
 
+    profile_dict = payload.profile.model_dump() if payload.profile else None
+    personalized_result = call_personalizer_if_available(analysis_result, profile_dict)
+
+    final_analysis = personalized_result or analysis_result
+
     return {
         "products": extractor_result.get("products", []),
-        "analysis": analysis_result,
+        "analysis": final_analysis,
         "unknown_products": extractor_result.get("unknown_products", []),
     }
