@@ -33,6 +33,37 @@ PAIR_RULES: Dict[FrozenSet[str], dict] = {
         "message": "Vitamin C and salicylic acid may increase irritation in some users.",
         "recommendation": "Patch test and avoid stacking if irritation occurs."
     },
+
+        frozenset({"aha", "bha"}): {
+        "risk_level": "high",
+        "message": "Combining AHA and BHA can over-exfoliate the skin and increase irritation risk.",
+        "recommendation": "Avoid using multiple exfoliating acids in the same routine."
+    },
+    frozenset({"retinol", "aha"}): {
+        "risk_level": "high",
+        "message": "Retinol combined with AHAs may strongly increase irritation and skin sensitivity.",
+        "recommendation": "Use retinol and AHAs on different nights."
+    },
+    frozenset({"benzoyl peroxide", "aha"}): {
+        "risk_level": "high",
+        "message": "Benzoyl peroxide combined with AHAs may cause excessive dryness and irritation.",
+        "recommendation": "Do not layer benzoyl peroxide with exfoliating acids."
+    },
+    frozenset({"vitamin c", "copper peptides"}): {
+        "risk_level": "medium",
+        "message": "Copper peptides may reduce vitamin C stability when used in the same routine.",
+        "recommendation": "Use vitamin C and copper peptides at different times of day."
+    },
+    frozenset({"fragrance", "retinol"}): {
+        "risk_level": "medium",
+        "message": "Fragrance may increase irritation risk when combined with retinol.",
+        "recommendation": "Avoid fragranced products when using retinol, especially on sensitive skin."
+    },
+    frozenset({"fragrance", "salicylic acid"}): {
+        "risk_level": "medium",
+        "message": "Fragrance combined with salicylic acid may increase irritation risk, especially for sensitive skin.",
+        "recommendation": "Use a fragrance-free product when applying salicylic acid."
+    },
 }
 
 STACKING_INGREDIENTS = {

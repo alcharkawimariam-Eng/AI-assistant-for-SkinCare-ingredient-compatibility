@@ -112,3 +112,31 @@ def test_sunscreen_role():
     result = analyze_payload(payload)
 
     assert result.product_analysis[0].derived_role == "sunscreen"
+
+def test_aha_bha_conflict_from_julia_rules():
+    payload = AnalyzerRequest(
+        products=[
+            {
+                "id": "p1",
+                "name": "AHA Exfoliant",
+                "found": True,
+                "full_ingredients_text": "Water, AHA",
+                "interaction_relevant_ingredients": ["aha"]
+            },
+            {
+                "id": "p2",
+                "name": "BHA Exfoliant",
+                "found": True,
+                "full_ingredients_text": "Water, BHA",
+                "interaction_relevant_ingredients": ["bha"]
+            }
+        ],
+        unknown_products=[]
+    )
+
+    result = analyze_payload(payload)
+
+    assert result.compatible is False
+    assert result.risk_level == "high"
+    assert len(result.issues) >= 1
+    assert "AHA" in result.issues[0].message or "BHA" in result.issues[0].message
