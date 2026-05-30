@@ -1116,10 +1116,9 @@ const getAgeGroup = (age) => {
 
   if (!numericAge) return null;
   if (numericAge < 18) return "teen";
-  if (numericAge < 30) return "young_adult";
   if (numericAge < 60) return "adult";
 
-  return "senior";
+  return "mature";
 };
   const handleAnalyze = async () => {
     const filledProducts = products.filter(
@@ -2151,10 +2150,10 @@ backdropFilter: "blur(6px)",
                 }}
               >
                 <option value="">{t.selectSkinType}</option>
-               <option value="Oily">{t.oily}</option>
-<option value="Dry">{t.dry}</option>
-<option value="Combination">{t.combination}</option>
-<option value="Sensitive">{t.sensitive}</option>
+               <option value="oily">{t.oily}</option>
+<option value="dry">{t.dry}</option>
+<option value="combination">{t.combination}</option>
+<option value="sensitive">{t.sensitive}</option>
               </select>
             </div>
             <div
@@ -3391,10 +3390,10 @@ backdropFilter: "blur(6px)",
           style={inputStyle}
         >
           <option value="">{t.selectSkinType}</option>
-          <option value="Oily">{t.oily}</option>
-          <option value="Dry">{t.dry}</option>
-          <option value="Combination">{t.combination}</option>
-          <option value="Sensitive">{t.sensitive}</option>
+          <option value="oily">{t.oily}</option>
+          <option value="dry">{t.dry}</option>
+          <option value="combination">{t.combination}</option>
+          <option value="sensitive">{t.sensitive}</option>
         </select>
       </div>
 
