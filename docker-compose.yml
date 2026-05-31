@@ -1,23 +1,36 @@
-version: '3.9'
 services:
   gateway:
     build: ./apps/gateway
     ports:
       - "8000:8000"
     env_file: .env.example
+    environment:
+      EXTRACTOR_URL: http://extractor:8001/extract
+      ANALYZER_URL: http://risk_engine:8002/analyze
+      PERSONALIZER_URL: http://personalizer:8003/personalize
     depends_on:
       - extractor
       - risk_engine
+      - personalizer
 
   extractor:
     build: ./services/extractor
     ports:
       - "8001:8001"
+    environment:
+      DATASET_PATH: /data/main_skincare_dataset.csv
+    volumes:
+      - ./data:/data:ro
 
   risk_engine:
     build: ./services/risk_engine
     ports:
       - "8002:8002"
+
+  personalizer:
+    build: ./services/personalizer
+    ports:
+      - "8003:8003"
 
   prometheus:
     image: prom/prometheus:latest

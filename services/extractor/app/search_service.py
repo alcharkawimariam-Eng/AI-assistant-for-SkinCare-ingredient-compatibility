@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -8,7 +9,12 @@ from .ingredient_parser import extract_interaction_relevant_ingredients
 
 class SearchService:
     def __init__(self):
-        dataset_path = Path(__file__).resolve().parents[3] / "data" / "main_skincare_dataset.csv"
+        dataset_path_env = os.getenv("DATASET_PATH")
+        if dataset_path_env:
+            dataset_path = Path(dataset_path_env)
+        else:
+            dataset_path = Path(__file__).resolve().parents[3] / "data" / "main_skincare_dataset.csv"
+
         self.local_search = LocalProductSearch(dataset_path)
         self.incidecoder_search = IncidecoderSearch()
 
