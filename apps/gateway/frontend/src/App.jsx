@@ -130,6 +130,18 @@ ingredientCheckerSubtitle: "Enter ingredients separated by commas to review ingr
       productAnalyzer: "Product Analyzer",
       ingredientChecker: "Ingredient Checker",
       routine: "Routine",
+      ocrUpload: "OCR Upload",
+ocrUploadTitle: "OCR Ingredient Upload",
+ocrUploadSubtitle: "Upload a photo of a product ingredient list, extract the ingredients, review them, then send them to the analyzer.",
+uploadIngredientPhoto: "Upload ingredient-list photo",
+chooseImage: "Choose Image",
+extractIngredients: "Extract Ingredients",
+extractingIngredients: "Extracting ingredients from image...",
+extractedIngredients: "Extracted Ingredients",
+editExtractedIngredients: "Confirm or edit the extracted ingredients before analysis.",
+sendExtractedToScan: "Send to Analyzer",
+noImageSelected: "Please select an image first.",
+ocrBackendError: "OCR backend is not available yet, or the image extraction request failed.",
       interactionTitle: "Interaction Analysis",
 interactionSubtitle: "Add your skincare products and check if they work well together.",
 productName: "Product Name",
@@ -275,6 +287,18 @@ checkIngredients: "فحص المكوّنات",
 ingredientCheckerSubtitle: "أدخلي المكوّنات مفصولة بفواصل لتحليل التفاعل بينها، والتحذيرات، والتعارض، والتوافق، والملاحظات.",
       ingredientChecker: "فحص المكوّنات",
       routine: "الروتين",
+      ocrUpload: "رفع صورة OCR",
+ocrUploadTitle: "رفع صورة مكوّنات المنتج",
+ocrUploadSubtitle: "ارفعي صورة لقائمة مكوّنات المنتج، ثم راجعي المكوّنات المستخرجة وعدّليها قبل إرسالها للتحليل.",
+uploadIngredientPhoto: "رفع صورة قائمة المكوّنات",
+chooseImage: "اختيار صورة",
+extractIngredients: "استخراج المكوّنات",
+extractingIngredients: "جاري استخراج المكوّنات من الصورة...",
+extractedIngredients: "المكوّنات المستخرجة",
+editExtractedIngredients: "راجعي أو عدّلي المكوّنات المستخرجة قبل التحليل.",
+sendExtractedToScan: "إرسال إلى التحليل",
+noImageSelected: "يرجى اختيار صورة أولًا.",
+ocrBackendError: "خدمة OCR غير متاحة حاليًا، أو فشل طلب استخراج المكوّنات من الصورة.",
      productNotFoundExternalPreview: "المنتج غير موجود في قاعدة البيانات المحلية. يتم عرض معاينة من مصدر خارجي.",
 productNotFoundNameFallback: "المنتج غير موجود في قاعدة البيانات المحلية ولا في قائمة المعاينة الخارجية. يتم عرض نتيجة تقريبية بالاعتماد على الاسم فقط.", 
       score: "النتيجة",
@@ -439,6 +463,18 @@ nameBasedFallback: "Résultat approximatif par nom",
       productAnalyzer: "Analyseur de produit",
       ingredientChecker: "Vérificateur d’ingrédients",
       routine: "Routine",
+      ocrUpload: "Téléversement OCR",
+ocrUploadTitle: "Téléversement des ingrédients par OCR",
+ocrUploadSubtitle: "Téléversez une photo de la liste d’ingrédients du produit, vérifiez les ingrédients extraits, puis envoyez-les à l’analyseur.",
+uploadIngredientPhoto: "Téléverser une photo de la liste d’ingrédients",
+chooseImage: "Choisir une image",
+extractIngredients: "Extraire les ingrédients",
+extractingIngredients: "Extraction des ingrédients depuis l’image...",
+extractedIngredients: "Ingrédients extraits",
+editExtractedIngredients: "Confirmez ou modifiez les ingrédients extraits avant l’analyse.",
+sendExtractedToScan: "Envoyer à l’analyseur",
+noImageSelected: "Veuillez choisir une image d’abord.",
+ocrBackendError: "Le service OCR n’est pas encore disponible, ou la requête d’extraction d’image a échoué.",
       productNotFoundExternalPreview: "Produit introuvable dans la base locale. Affichage d’un aperçu à partir d’une source externe.",
 productNotFoundNameFallback: "Produit introuvable dans la base locale ou la liste d’aperçu externe. Affichage d’un résultat approximatif basé uniquement sur le nom.",
       interactionTitle: "Analyse des interactions",
@@ -548,6 +584,12 @@ const [ingredientError, setIngredientError] = useState("");
   const [routineLoading, setRoutineLoading] = useState(false);
 const [routineError, setRoutineError] = useState("");
 const [showHistory, setShowHistory] = useState(false);
+const [ocrImage, setOcrImage] = useState(null);
+const [ocrPreviewUrl, setOcrPreviewUrl] = useState("");
+const [ocrExtractedText, setOcrExtractedText] = useState("");
+const [ocrExtractedIngredients, setOcrExtractedIngredients] = useState([]);
+const [ocrLoading, setOcrLoading] = useState(false);
+const [ocrError, setOcrError] = useState("");
 
 const [historyItems, setHistoryItems] = useState(() => {
   try {
@@ -1547,7 +1589,85 @@ addHistoryItem({
   }
 };
    
+const handleOcrImageChange = (event) => {
+  const file = event.target.files?.[0];
 
+  if (!file) {
+    setOcrImage(null);
+    setOcrPreviewUrl("");
+    return;
+  }
+
+  setOcrImage(file);
+  setOcrPreviewUrl(URL.createObjectURL(file));
+  setOcrExtractedText("");
+  setOcrExtractedIngredients([]);
+  setOcrError("");
+};
+
+const parseOcrIngredients = (text) => {
+  return text
+    .split(/,|\n|;/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const handleOcrExtract = async () => {
+  if (!ocrImage) {
+    alert(t.noImageSelected);
+    return;
+  }
+
+  setOcrLoading(true);
+  setOcrError("");
+
+  try {
+    const formData = new FormData();
+    formData.append("image", ocrImage);
+
+    const response = await fetch("http://localhost:8000/extract-ocr", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("OCR request failed");
+    }
+
+    const data = await response.json();
+    const extractedText =
+      data.extracted_text ||
+      data.text ||
+      data.ingredients_text ||
+      "";
+
+    const extractedIngredients =
+      data.ingredients ||
+      parseOcrIngredients(extractedText);
+
+    setOcrExtractedText(extractedText);
+    setOcrExtractedIngredients(extractedIngredients);
+  } catch (error) {
+    console.error(error);
+    setOcrError(t.ocrBackendError);
+  } finally {
+    setOcrLoading(false);
+  }
+};
+
+const handleOcrIngredientEdit = (value) => {
+  setOcrExtractedText(value);
+  setOcrExtractedIngredients(parseOcrIngredients(value));
+};
+
+const handleSendOcrToAnalyzer = () => {
+  const ingredientsText =
+    ocrExtractedText ||
+    ocrExtractedIngredients.join(", ");
+
+  setIngredientInput(ingredientsText);
+  setActiveTab("ingredient");
+};
  const handleRoutineBuild = async () => {
   if (!routineSkinType) {
     alert("Please select your skin type.");
@@ -2026,6 +2146,10 @@ opacity: 0.9,
 
 <button style={tabStyle("routine")} onClick={() => setActiveTab("routine")}>
   {t.routine}
+  
+</button>
+<button style={tabStyle("ocr")} onClick={() => setActiveTab("ocr")}>
+  {t.ocrUpload}
 </button>
       </div>
 
@@ -2970,6 +3094,155 @@ backdropFilter: "blur(6px)",
             )}
           </div>
         )}
+        {activeTab === "ocr" && (
+  <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 20px" }}>
+    <div
+      style={{
+        background: "white",
+        borderRadius: "24px",
+        padding: "28px",
+        boxShadow: "0 10px 28px rgba(108,99,255,0.12)",
+        border: "1px solid rgba(108,99,255,0.12)",
+      }}
+    >
+      <h2 style={{ marginTop: 0, color: "#2F2A45" }}>
+        {t.ocrUploadTitle}
+      </h2>
+
+      <p style={{ color: "#7C7698", lineHeight: "1.7" }}>
+        {t.ocrUploadSubtitle}
+      </p>
+
+      <label style={{ ...detailLabelStyle, display: "block", marginTop: "20px" }}>
+        {t.uploadIngredientPhoto}
+      </label>
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleOcrImageChange}
+        style={inputStyle}
+      />
+
+      {ocrPreviewUrl && (
+        <div style={{ marginTop: "20px" }}>
+          <img
+            src={ocrPreviewUrl}
+            alt="Ingredient list preview"
+            style={{
+              width: "100%",
+              maxHeight: "320px",
+              objectFit: "contain",
+              borderRadius: "18px",
+              border: "1px solid #E2CFF8",
+              background: "#F7F4FF",
+            }}
+          />
+        </div>
+      )}
+
+      <button
+        onClick={handleOcrExtract}
+        disabled={ocrLoading}
+        style={{
+          marginTop: "20px",
+          padding: "13px 20px",
+          borderRadius: "14px",
+          border: "none",
+          background: ocrLoading ? "#B9B4FF" : "#6C63FF",
+          color: "white",
+          fontWeight: "700",
+          cursor: ocrLoading ? "not-allowed" : "pointer",
+        }}
+      >
+        {ocrLoading ? t.extractingIngredients : t.extractIngredients}
+      </button>
+
+      {ocrError && (
+        <div
+          style={{
+            marginTop: "18px",
+            padding: "14px",
+            borderRadius: "14px",
+            background: "#FFF1F1",
+            color: "#C62828",
+            border: "1px solid #F5B5B5",
+            fontWeight: "600",
+          }}
+        >
+          {ocrError}
+        </div>
+      )}
+
+      {(ocrExtractedText || ocrExtractedIngredients.length > 0) && (
+        <div style={{ marginTop: "26px" }}>
+          <h3 style={{ color: "#2F2A45" }}>{t.extractedIngredients}</h3>
+
+          <p style={{ color: "#7C7698" }}>
+            {t.editExtractedIngredients}
+          </p>
+
+          <textarea
+            value={
+              ocrExtractedText || ocrExtractedIngredients.join(", ")
+            }
+            onChange={(e) => handleOcrIngredientEdit(e.target.value)}
+            rows={8}
+            style={{
+              ...inputStyle,
+              minHeight: "160px",
+              resize: "vertical",
+              lineHeight: "1.6",
+            }}
+          />
+
+          {ocrExtractedIngredients.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                marginTop: "14px",
+              }}
+            >
+              {ocrExtractedIngredients.map((ingredient, index) => (
+                <span
+                  key={`${ingredient}-${index}`}
+                  style={{
+                    padding: "7px 11px",
+                    borderRadius: "999px",
+                    background: "#F3F0FF",
+                    color: "#6C63FF",
+                    fontWeight: "700",
+                    fontSize: "13px",
+                  }}
+                >
+                  {ingredient}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleSendOcrToAnalyzer}
+            style={{
+              marginTop: "20px",
+              padding: "13px 20px",
+              borderRadius: "14px",
+              border: "none",
+              background: "#2E7D32",
+              color: "white",
+              fontWeight: "700",
+              cursor: "pointer",
+            }}
+          >
+            {t.sendExtractedToScan}
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
         {activeTab === "ingredient" && (
           <div
