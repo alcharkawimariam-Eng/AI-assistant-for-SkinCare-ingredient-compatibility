@@ -4,7 +4,7 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
-from .ingredient_parser import extract_interaction_relevant_ingredients
+
 
 class IncidecoderSearch:
     def search(self, query: str) -> Optional[Dict[str, Any]]:
@@ -14,10 +14,11 @@ class IncidecoderSearch:
             "User-Agent": "Mozilla/5.0"
         }
 
+
         try:
             response = requests.get(search_url, headers=headers, timeout=15)
             response.raise_for_status()
-        except Exception:
+        except Exception as e:
             return None
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -27,11 +28,12 @@ class IncidecoderSearch:
             href = a["href"]
             text = a.get_text(" ", strip=True)
 
-            if href.startswith("/products/") and text:
+            if href.startswith("/products/") and href != "/products/create" and text:
                 product_links.append({
                     "title": text,
                     "url": "https://incidecoder.com" + href
                 })
+
 
         seen = set()
         unique_links = []
@@ -39,6 +41,8 @@ class IncidecoderSearch:
             if item["url"] not in seen:
                 seen.add(item["url"])
                 unique_links.append(item)
+
+        
 
         if not unique_links:
             return None
@@ -55,13 +59,10 @@ class IncidecoderSearch:
             "brand": None,
             "product_name": top_result["title"],
             "category": None,
-            "ingredients": ingredients_data["ingredients"],
+            "full_ingredients_text": ingredients_data["full_ingredients_text"],
             "active_ingredients": ingredients_data["active_ingredients"],
-            "interaction_relevant_ingredients": extract_interaction_relevant_ingredients(
-                ingredients_data["ingredients"]
-            ),
             "source_url": top_result["url"],
-}
+        }
 
     def _extract_product_ingredients(self, product_url: str) -> Dict[str, Optional[str]]:
         headers = {
@@ -73,24 +74,24 @@ class IncidecoderSearch:
             response.raise_for_status()
         except Exception:
             return {
-                "ingredients": None,
+                "full_ingredients_text": None,
                 "active_ingredients": None,
             }
 
         soup = BeautifulSoup(response.text, "html.parser")
         page_text = soup.get_text("\n", strip=True)
-        print(page_text[:3000])
+
         active_text = self._extract_section(
-        page_text,
-        start_label="Active Ingredients",
-        end_labels=["Inactive Ingredients", "Read more on", "Compare", "Report Error", "Embed"]
-                                            )
+            page_text,
+            start_label="Active Ingredients",
+            end_labels=["Inactive Ingredients", "Read more on", "Compare", "Report Error", "Embed"]
+        )
 
         inactive_text = self._extract_section(
-        page_text,
-        start_label="Inactive Ingredients",
-        end_labels=["Read more on", "Compare", "Report Error", "Embed", "Highlights", "Key Ingredients"]
-                                        )
+            page_text,
+            start_label="Inactive Ingredients",
+            end_labels=["Read more on", "Compare", "Report Error", "Embed", "Highlights", "Key Ingredients"]
+        )
 
         full_ingredients = None
         if active_text and inactive_text:
@@ -100,8 +101,25 @@ class IncidecoderSearch:
         elif active_text:
             full_ingredients = active_text
 
+        if not full_ingredients:
+            generic_ingredients = self._extract_section(
+            page_text,
+            start_label="Ingredients overview",
+            end_labels=[
+            "Read more on",
+            "Compare",
+            "Report Error",
+            "Embed",
+            "Highlights",
+            "Key Ingredients",
+            "Ingredients explained",
+            "Show all ingredients by function",
+            ]
+        )
+        full_ingredients = generic_ingredients
+
         return {
-            "ingredients": self._clean_text(full_ingredients),
+            "full_ingredients_text": self._clean_text(full_ingredients),
             "active_ingredients": self._clean_text(active_text),
         }
 
