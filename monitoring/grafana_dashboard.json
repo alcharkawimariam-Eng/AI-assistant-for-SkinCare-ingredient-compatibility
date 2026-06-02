@@ -1,0 +1,170 @@
+{
+  "uid": "skincare-ai-copilot-monitoring",
+  "title": "Skincare AI Copilot Monitoring",
+  "tags": ["skincare-ai", "mlops", "monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Extractor Latency p50 / p95",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "p50",
+          "expr": "histogram_quantile(0.50, rate(extractor_request_latency_seconds_bucket[5m]))"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "p95",
+          "expr": "histogram_quantile(0.95, rate(extractor_request_latency_seconds_bucket[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Analyzer Latency p50 / p95",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "p50",
+          "expr": "histogram_quantile(0.50, rate(analyzer_request_latency_seconds_bucket[5m]))"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "p95",
+          "expr": "histogram_quantile(0.95, rate(analyzer_request_latency_seconds_bucket[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Personalizer Latency p50 / p95",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "p50",
+          "expr": "histogram_quantile(0.50, rate(personalizer_request_latency_seconds_bucket[5m]))"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "p95",
+          "expr": "histogram_quantile(0.95, rate(personalizer_request_latency_seconds_bucket[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Extractor Error Rate",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "errors/sec",
+          "expr": "rate(extractor_errors_total[5m])"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Analyzer Error Rate",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "errors/sec",
+          "expr": "rate(analyzer_errors_total[5m])"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Personalizer Error Rate",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "errors/sec",
+          "expr": "rate(personalizer_errors_total[5m])"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Total Throughput - Requests/sec",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "total requests/sec",
+          "expr": "sum(rate(extractor_requests_total[5m])) + sum(rate(analyzer_requests_total[5m])) + sum(rate(personalizer_requests_total[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "ML Signal - Extractor Hit Rate by Source",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "{{source}}",
+          "expr": "sum by (source) (rate(extractor_hits_total[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "ML Signal - Analyzer Risk-Level Distribution",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "{{risk_level}}",
+          "expr": "sum by (risk_level) (increase(analyzer_risk_level_total[5m]))"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "ML Signal - Personalizer Escalation Rate",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 24 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "escalations/sec",
+          "expr": "rate(personalizer_escalations_total[5m])"
+        }
+      ]
+    }
+  ]
+}
