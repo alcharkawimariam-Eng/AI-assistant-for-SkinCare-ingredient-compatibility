@@ -108,3 +108,47 @@ img {
     height: 230px !important;
   }
 }
+@media (max-width: 768px) {
+  #root {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  nav,
+  .tabs,
+  [role="tablist"] {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  section,
+  main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  input,
+  textarea,
+  select {
+    width: 100% !important;
+  }
+
+  button {
+    white-space: normal;
+  }
+}
+@media (max-width: 480px) {
+  [style*="font-size: 44px"],
+  [style*="font-size: 42px"],
+  [style*="font-size: 40px"] {
+    font-size: 30px !important;
+    line-height: 1.1 !important;
+  }
+
+  [style*="font-size: 20px"] {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+  }
+}
