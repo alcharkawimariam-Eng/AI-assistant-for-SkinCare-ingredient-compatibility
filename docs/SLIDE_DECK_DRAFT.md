@@ -93,8 +93,8 @@ Demo flow:
 ---
 
 ## Slide 6 - Monitoring Screenshot: Grafana
-Placeholder:
-Add Grafana dashboard screenshot here.
+Image:
+`docs/slide-assets/grafana-dashboard-screenshot.png`
 
 Dashboard includes:
 - p50 and p95 latency per service
@@ -175,3 +175,4 @@ Future improvements:
 Thank you.
 
 Questions?
+
