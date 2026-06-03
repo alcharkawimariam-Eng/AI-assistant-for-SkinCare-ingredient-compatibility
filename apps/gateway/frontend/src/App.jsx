@@ -2284,16 +2284,35 @@ backdropFilter: "blur(6px)",
 {analysisLoading && (
   <div
     style={{
-      textAlign: "center",
-      padding: "14px 18px",
-      borderRadius: "14px",
+      padding: "18px",
+      borderRadius: "16px",
       background: "#F5F4FF",
-      color: "#6C63FF",
-      fontWeight: "600",
+      border: "1px solid #E2DFFF",
       marginBottom: "20px",
     }}
   >
-    Analyzing products with backend...
+    <div
+      style={{
+        color: "#6C63FF",
+        fontWeight: "700",
+        marginBottom: "12px",
+      }}
+    >
+      Analyzing products with backend...
+    </div>
+
+    {[1, 2, 3].map((item) => (
+      <div
+        key={item}
+        style={{
+          height: item === 1 ? "16px" : "12px",
+          width: item === 1 ? "70%" : item === 2 ? "95%" : "82%",
+          borderRadius: "999px",
+          background: "#E2DFFF",
+          marginBottom: "10px",
+        }}
+      />
+    ))}
   </div>
 )}
 
@@ -2644,16 +2663,35 @@ backdropFilter: "blur(6px)",
 {productLoading && (
   <div
     style={{
-      textAlign: "center",
-      padding: "14px 18px",
-      borderRadius: "14px",
+      padding: "18px",
+      borderRadius: "16px",
       background: "#F5F4FF",
-      color: "#6C63FF",
-      fontWeight: "600",
+      border: "1px solid #E2DFFF",
       marginBottom: "20px",
     }}
   >
-    Analyzing product with backend...
+    <div
+      style={{
+        color: "#6C63FF",
+        fontWeight: "700",
+        marginBottom: "12px",
+      }}
+    >
+      Analyzing product with backend...
+    </div>
+
+    {[1, 2, 3].map((item) => (
+      <div
+        key={item}
+        style={{
+          height: item === 1 ? "16px" : "12px",
+          width: item === 1 ? "68%" : item === 2 ? "92%" : "76%",
+          borderRadius: "999px",
+          background: "#E2DFFF",
+          marginBottom: "10px",
+        }}
+      />
+    ))}
   </div>
 )}
 
@@ -3068,16 +3106,35 @@ backdropFilter: "blur(6px)",
 {ingredientLoading && (
   <div
     style={{
-      textAlign: "center",
-      padding: "14px 18px",
-      borderRadius: "14px",
+      padding: "18px",
+      borderRadius: "16px",
       background: "#F5F4FF",
-      color: "#6C63FF",
-      fontWeight: "600",
+      border: "1px solid #E2DFFF",
       marginBottom: "20px",
     }}
   >
-    Checking ingredients with backend...
+    <div
+      style={{
+        color: "#6C63FF",
+        fontWeight: "700",
+        marginBottom: "12px",
+      }}
+    >
+      Checking ingredients with backend...
+    </div>
+
+    {[1, 2, 3].map((item) => (
+      <div
+        key={item}
+        style={{
+          height: item === 1 ? "16px" : "12px",
+          width: item === 1 ? "72%" : item === 2 ? "90%" : "78%",
+          borderRadius: "999px",
+          background: "#E2DFFF",
+          marginBottom: "10px",
+        }}
+      />
+    ))}
   </div>
 )}
 
@@ -3448,19 +3505,38 @@ backdropFilter: "blur(6px)",
   {t.buildMyRoutine}
 </button>
     </div>
-    {routineLoading && (
+{routineLoading && (
   <div
     style={{
-      textAlign: "center",
-      padding: "14px 18px",
-      borderRadius: "14px",
+      padding: "18px",
+      borderRadius: "16px",
       background: "#F5F4FF",
-      color: "#6C63FF",
-      fontWeight: "600",
+      border: "1px solid #E2DFFF",
       marginBottom: "20px",
     }}
   >
-    Building routine with backend...
+    <div
+      style={{
+        color: "#6C63FF",
+        fontWeight: "700",
+        marginBottom: "12px",
+      }}
+    >
+      Building routine with backend...
+    </div>
+
+    {[1, 2, 3].map((item) => (
+      <div
+        key={item}
+        style={{
+          height: item === 1 ? "16px" : "12px",
+          width: item === 1 ? "66%" : item === 2 ? "88%" : "74%",
+          borderRadius: "999px",
+          background: "#E2DFFF",
+          marginBottom: "10px",
+        }}
+      />
+    ))}
   </div>
 )}
 
