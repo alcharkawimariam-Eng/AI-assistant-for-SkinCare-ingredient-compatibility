@@ -1126,12 +1126,12 @@ const getAgeGroup = (age) => {
     );
 
     if (filledProducts.length < 2) {
-      alert(t.alertEnter2Products);
+      setAnalysisError(t.alertEnter2Products);
       return;
     }
 
     if (!skinType) {
-      alert(t.alertSelectSkinType);
+      setAnalysisError(t.alertSelectSkinType);
       return;
     }
 
@@ -1252,7 +1252,7 @@ const payload = buildScanPayload({
 
 const handleSingleProductAnalyze = async () => {
   if (!singleProduct.name.trim()) {
-    alert(t.enterProductNameAlert);
+    setProductError(t.enterProductNameAlert);
     return;
   }
 
@@ -1438,7 +1438,7 @@ addHistoryItem({
   const parsedIngredients = parseIngredientInput(ingredientInput);
 
   if (parsedIngredients.length === 0) {
-    alert("Please enter at least one ingredient.");
+    setIngredientError("Please enter at least one ingredient.");
     return;
   }
 
@@ -1550,12 +1550,12 @@ addHistoryItem({
 
  const handleRoutineBuild = async () => {
   if (!routineSkinType) {
-    alert("Please select your skin type.");
+    setRoutineError("Please select your skin type.");
     return;
   }
 
   if (!routineConcern) {
-    alert("Please select your main concern.");
+    setRoutineError("Please select your main concern.");
     return;
   }
 
