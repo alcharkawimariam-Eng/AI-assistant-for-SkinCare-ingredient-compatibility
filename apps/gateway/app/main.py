@@ -21,6 +21,7 @@ app.add_middleware(
 EXTRACTOR_URL = os.getenv("EXTRACTOR_URL", "http://127.0.0.1:8001/extract")
 ANALYZER_URL = os.getenv("ANALYZER_URL", "http://127.0.0.1:8002/analyze")
 PERSONALIZER_URL = os.getenv("PERSONALIZER_URL", "http://127.0.0.1:8003/personalize")
+ROUTINE_BUILDER_URL = os.getenv("ROUTINE_BUILDER_URL", "http://127.0.0.1:8004/routine")
 
 
 class ProductInput(BaseModel):
@@ -50,9 +51,13 @@ class ScanRequest(BaseModel):
     profile: Optional[UserProfile] = None
     skin_type: Optional[str] = None
     sensitivity: Optional[str] = None
+    request_type: Optional[str] = None
 
     @model_validator(mode="after")
     def validate_products(self):
+        if self.request_type == "routine_builder":
+            return self
+
         if len(self.products) > 6:
             raise ValueError("Maximum number of products per request is 6.")
 
@@ -134,8 +139,59 @@ def call_personalizer_if_available(
     except requests.RequestException:
         return None
 
+
+def call_routine_builder(profile: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    if profile is None:
+        return None
+
+    skin_type = profile.get("skin_type")
+    concerns = profile.get("concerns", [])
+    concern = concerns[0] if concerns else "general"
+
+    if not skin_type:
+        return None
+
+    try:
+        response = requests.post(
+            ROUTINE_BUILDER_URL,
+            json={
+                "skin_type": skin_type,
+                "concern": concern,
+                "sensitivity": profile.get("sensitivity"),
+                "age_group": profile.get("age_group"),
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to call routine builder service: {str(exc)}"
+        )
+
+
 @app.post("/scan")
 def scan(payload: ScanRequest):
+    if payload.request_type == "routine_builder":
+        profile_dict = payload.profile.model_dump() if payload.profile else None
+        routine_result = call_routine_builder(profile_dict)
+        if routine_result:
+            return {
+                "products": [],
+                "analysis": None,
+                "unknown_products": [],
+                "title": routine_result.get("title"),
+                "summary": routine_result.get("summary"),
+                "morningRoutine": routine_result.get("morning_routine", []),
+                "nightRoutine": routine_result.get("night_routine", []),
+                "suggestedProducts": routine_result.get("suggested_products", []),
+                "usageOrder": routine_result.get("usage_order", []),
+                "aiNotes": routine_result.get("ai_notes", []),
+                "routine_title": routine_result.get("title"),
+            }
+        raise HTTPException(status_code=400, detail="Could not build routine. skin_type is required in profile.")
+
     products = [product.model_dump() for product in payload.products]
 
     extractor_result = call_extractor(products)

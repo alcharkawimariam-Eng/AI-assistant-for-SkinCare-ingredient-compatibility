@@ -31,9 +31,30 @@ class Issue(BaseModel):
     message: str
 
 
+class ProductDetail(BaseModel):
+    id: str
+    name: str
+    category: str = "general skincare product"
+    derived_role: str = ""
+    full_ingredients_text: str | None = None
+    interaction_relevant_ingredients: List[str] = Field(default_factory=list)
+
+
+class SynergyItem(BaseModel):
+    ingredients: List[str]
+    message: str
+
+
 class AnalyzerResponse(BaseModel):
     compatible: bool
     risk_level: RiskLevel
     summary: str
     issues: List[Issue] = Field(default_factory=list)
     recommendations: List[str] = Field(default_factory=list)
+    synergies: List[SynergyItem] = Field(default_factory=list)
+    strengths: List[str] = Field(default_factory=list)
+    cautions: List[str] = Field(default_factory=list)
+    notes: List[str] = Field(default_factory=list)
+    optimal_ph: List[str] = Field(default_factory=list)
+    product_details: List[ProductDetail] = Field(default_factory=list)
+    product_analysis: List[ProductDetail] = Field(default_factory=list)

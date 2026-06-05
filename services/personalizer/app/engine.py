@@ -40,6 +40,15 @@ def personalize(request: PersonalizeRequest) -> PersonalizeResponse:
     analysis = request.analysis
     profile = request.profile
 
+    passthrough = dict(
+        synergies=analysis.synergies,
+        strengths=analysis.strengths,
+        cautions=analysis.cautions,
+        notes=analysis.notes,
+        optimal_ph=analysis.optimal_ph,
+        product_details=analysis.product_details,
+    )
+
     # If profile is empty, pass through unchanged but flag personalized=False.
     if profile.is_empty():
         return PersonalizeResponse(
@@ -51,6 +60,7 @@ def personalize(request: PersonalizeRequest) -> PersonalizeResponse:
             recommendations=analysis.recommendations,
             adjustments=[],
             personalized=False,
+            **passthrough,
         )
 
     # Collect adjustments from every rule that fires.
@@ -92,4 +102,5 @@ def personalize(request: PersonalizeRequest) -> PersonalizeResponse:
         recommendations=merged_recs,
         adjustments=adjustments,
         personalized=True,
+        **passthrough,
     )

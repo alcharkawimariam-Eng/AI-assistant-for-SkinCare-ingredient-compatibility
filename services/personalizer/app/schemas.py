@@ -36,6 +36,20 @@ class UserProfile(BaseModel):
         )
 
 
+class SynergyItemIn(BaseModel):
+    ingredients: List[str]
+    message: str
+
+
+class ProductDetailIn(BaseModel):
+    id: str
+    name: str
+    category: str = "general skincare product"
+    derived_role: str = ""
+    full_ingredients_text: str | None = None
+    interaction_relevant_ingredients: List[str] = Field(default_factory=list)
+
+
 class AnalyzerResultIn(BaseModel):
     """The personalizer accepts an analyzer-shaped result and re-scores it."""
     compatible: bool
@@ -43,6 +57,12 @@ class AnalyzerResultIn(BaseModel):
     summary: str
     issues: List[Issue] = Field(default_factory=list)
     recommendations: List[str] = Field(default_factory=list)
+    synergies: List[SynergyItemIn] = Field(default_factory=list)
+    strengths: List[str] = Field(default_factory=list)
+    cautions: List[str] = Field(default_factory=list)
+    notes: List[str] = Field(default_factory=list)
+    optimal_ph: List[str] = Field(default_factory=list)
+    product_details: List[ProductDetailIn] = Field(default_factory=list)
 
 
 class PersonalizeRequest(BaseModel):
@@ -76,3 +96,9 @@ class PersonalizeResponse(BaseModel):
         default=False,
         description="True if the profile was non-empty and any logic was applied."
     )
+    synergies: List[SynergyItemIn] = Field(default_factory=list)
+    strengths: List[str] = Field(default_factory=list)
+    cautions: List[str] = Field(default_factory=list)
+    notes: List[str] = Field(default_factory=list)
+    optimal_ph: List[str] = Field(default_factory=list)
+    product_details: List[ProductDetailIn] = Field(default_factory=list)
