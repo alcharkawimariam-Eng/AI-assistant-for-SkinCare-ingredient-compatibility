@@ -1,48 +1,27 @@
-# Failure Modes
+## Rate limiting
 
-## Oversized payload
+The gateway applies IP-based rate limits.
 
-If a client sends a request larger than 100KB, the gateway rejects it before processing.
+- Default limit: `60 requests/minute` per IP
+- `/scan` limit: `5 requests/minute` per IP
+- Status code when exceeded: `429 Too Many Requests`
+- Response: `{"detail": "Rate limit exceeded"}`
 
-- Status code: `413 Payload Too Large`
-- Response: `{"detail": "Payload exceeds 100KB limit"}`
-- Downstream services called: none
+## Retry behavior
 
-## Extractor unavailable
+The gateway retries internal service calls up to 3 times using exponential backoff.
 
-If the extractor service cannot be reached or times out:
+- Applies to: Extractor, Analyzer, Personalizer
+- Per-attempt timeout: 10 seconds
+- Backoff: exponential, capped at 2 seconds
 
-- Status code: `502 Bad Gateway`
-- Response contains an extractor failure message.
-- Analyzer and Personalizer are not called.
+## Extractor circuit breaker
 
-## Analyzer unavailable
+If the extractor fails 5 times within 30 seconds, the gateway opens the extractor circuit for 60 seconds.
 
-If the analyzer service cannot be reached or times out:
+While the circuit is open:
 
-- Status code: `502 Bad Gateway`
-- Response contains an analyzer failure message.
-- Personalizer is not called.
-
-## Personalizer unavailable
-
-If the personalizer service cannot be reached or times out:
-
-- Analyzer results are returned without personalization.
-- No error is returned to the client.
-
-## Internal service timeouts
-
-The gateway uses a 10-second timeout for calls to:
-- Extractor
-- Analyzer
-- Personalizer
-
-Requests exceeding this limit are treated as service failures.
-
-## Request tracing
-
-Each incoming request is assigned a unique request ID.
-
-- Added to response header: `X-Request-ID`
-- Logged by the gateway for troubleshooting and traceability.
+- The extractor is not called.
+- The gateway returns a fallback response with `fallback: "review_recommended"`.
+- Products are marked with `review_recommended: true`.
+- Unknown products are returned for manual review.
