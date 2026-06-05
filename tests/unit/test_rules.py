@@ -1,51 +1,63 @@
-from services.risk_engine.app.main import assess_ingredient_rules
+from services.risk_engine.app.main import (
+    AnalyzerRequest,
+    ProductInput,
+    analyze_payload,
+)
+
+
+def make_request(ingredients):
+    products = [
+        ProductInput(
+            id=f"p{i + 1}",
+            name=ingredient,
+            found=True,
+            interaction_relevant_ingredients=[ingredient],
+        )
+        for i, ingredient in enumerate(ingredients)
+    ]
+
+    return AnalyzerRequest(products=products, unknown_products=[])
+
+
+def analyze_ingredients(ingredients):
+    return analyze_payload(make_request(ingredients))
 
 
 def test_retinol_benzoyl_peroxide_high_risk():
-    risk_level, score, reasons = assess_ingredient_rules(
-        ["retinol", "benzoyl peroxide"]
-    )
+    result = analyze_ingredients(["retinol", "benzoyl peroxide"])
 
-    assert risk_level == "high"
-    assert score == 0.9
-    assert len(reasons) == 1
+    assert result.risk_level == "high"
+    assert result.compatible is False
+    assert len(result.issues) == 1
 
 
 def test_vitamin_c_copper_peptides_medium_risk():
-    risk_level, score, reasons = assess_ingredient_rules(
-        ["vitamin c", "copper peptides"]
-    )
+    result = analyze_ingredients(["vitamin c", "copper peptides"])
 
-    assert risk_level == "medium"
-    assert score == 0.6
-    assert len(reasons) == 1
+    assert result.risk_level == "medium"
+    assert result.compatible is False
+    assert len(result.issues) == 1
 
 
-def test_safe_combo_returns_safe():
-    risk_level, score, reasons = assess_ingredient_rules(
-        ["niacinamide", "hyaluronic acid"]
-    )
+def test_safe_combo_returns_low_risk():
+    result = analyze_ingredients(["niacinamide", "hyaluronic acid"])
 
-    assert risk_level == "safe"
-    assert score == 0.0
-    assert reasons == []
+    assert result.risk_level == "low"
+    assert result.compatible is True
+    assert result.issues == []
 
 
 def test_haircare_sulfates_color_treated_hair():
-    risk_level, score, reasons = assess_ingredient_rules(
-        ["sulfates", "color-treated hair"]
-    )
+    result = analyze_ingredients(["sulfates", "color-treated hair"])
 
-    assert risk_level == "medium"
-    assert score == 0.6
-    assert len(reasons) == 1
+    assert result.risk_level == "medium"
+    assert result.compatible is False
+    assert len(result.issues) == 1
 
 
 def test_haircare_silicones_curly_hair():
-    risk_level, score, reasons = assess_ingredient_rules(
-        ["silicones", "curly hair"]
-    )
+    result = analyze_ingredients(["silicones", "curly hair"])
 
-    assert risk_level == "medium"
-    assert score == 0.6
-    assert len(reasons) == 1
+    assert result.risk_level == "medium"
+    assert result.compatible is False
+    assert len(result.issues) == 1

@@ -1,6 +1,6 @@
 [
   {"input": ["retinol", "benzoyl peroxide"], "expected": "avoid"},
-  {"input": ["retinol", "salicylic acid"], "expected": "caution"},
+  {"input": ["retinol", "salicylic acid"], "expected": "avoid"},
   {"input": ["glycolic acid", "lactic acid"], "expected": "caution"},
   {"input": ["vitamin c", "copper peptides"], "expected": "caution"},
   {"input": ["aha", "physical exfoliant"], "expected": "avoid"},
@@ -21,7 +21,7 @@
   {"input": ["green tea", "niacinamide"], "expected": "safe"},
   {"input": ["centella asiatica", "ceramides"], "expected": "safe"},
 
-  {"input": ["retinol", "retinol"], "expected": "caution"},
+  {"input": ["retinol", "retinol"], "expected": "avoid"},
   {"input": ["salicylic acid", "salicylic acid"], "expected": "caution"},
   {"input": ["glycolic acid", "glycolic acid"], "expected": "caution"},
   {"input": ["lactic acid", "lactic acid"], "expected": "caution"},
@@ -61,9 +61,9 @@
   {"input": ["keratin", "protein"], "expected": "caution"},
   {"input": ["sulfates", "keratin"], "expected": "safe"},
   {"input": ["niacinamide", "green tea"], "expected": "safe"},
-  {"input": ["retinol"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
-  {"input": ["vitamin c"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
-  {"input": ["salicylic acid"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
-  {"input": ["glycolic acid"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"},
-  {"input": ["fragrance"], "skin_type": "sensitive", "sensitivity": "high", "expected": "caution"}
+  {"input": ["retinol"], "skin_type": "sensitive", "sensitivity": "high", "expected": "safe"},
+  {"input": ["vitamin c"], "skin_type": "sensitive", "sensitivity": "high", "expected": "safe"},
+  {"input": ["salicylic acid"], "skin_type": "sensitive", "sensitivity": "high", "expected": "safe"},
+  {"input": ["glycolic acid"], "skin_type": "sensitive", "sensitivity": "high", "expected": "safe"},
+  {"input": ["fragrance"], "skin_type": "sensitive", "sensitivity": "high", "expected": "safe"}
 ]

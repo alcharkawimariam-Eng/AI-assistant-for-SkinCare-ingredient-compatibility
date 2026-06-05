@@ -13,6 +13,8 @@ from prometheus_client import (
 )
 from pydantic import BaseModel, Field
 
+from .rules import PAIR_RULES, STACKING_INGREDIENTS
+
 app = FastAPI(title="Analyzer / Compatibility Service")
 
 
@@ -68,92 +70,6 @@ class AnalyzerResponse(BaseModel):
     issues: List[Issue] = Field(default_factory=list)
     recommendations: List[str] = Field(default_factory=list)
     product_analysis: List[ProductAnalysis] = Field(default_factory=list)
-
-
-# -------------------------
-# Rules
-# -------------------------
-PAIR_RULES = {
-    frozenset({"retinol", "glycolic acid"}): {
-        "risk_level": "high",
-        "message": "Retinol and glycolic acid together may cause irritation.",
-        "recommendation": "Use on alternating nights.",
-    },
-    frozenset({"retinol", "salicylic acid"}): {
-        "risk_level": "high",
-        "message": "Retinol and salicylic acid may over-dry the skin.",
-        "recommendation": "Separate usage.",
-    },
-    frozenset({"salicylic acid", "glycolic acid"}): {
-        "risk_level": "high",
-        "message": "Using multiple exfoliants together may damage the skin barrier.",
-        "recommendation": "Use only one exfoliant.",
-    },
-    frozenset({"vitamin c", "glycolic acid"}): {
-        "risk_level": "medium",
-        "message": "Vitamin C and glycolic acid may be too strong together.",
-        "recommendation": "Use at different times of day.",
-    },
-    frozenset({"benzoyl peroxide", "retinol"}): {
-        "risk_level": "high",
-        "message": "Benzoyl peroxide and retinol together may be too irritating.",
-        "recommendation": "Do not use them in the same routine.",
-    },
-    frozenset({"aha", "bha"}): {
-        "risk_level": "high",
-        "message": "Combining AHA and BHA can over-exfoliate the skin and increase irritation risk.",
-        "recommendation": "Avoid using multiple exfoliating acids in the same routine.",
-    },
-    frozenset({"retinol", "aha"}): {
-        "risk_level": "high",
-        "message": "Retinol combined with AHAs may strongly increase irritation and skin sensitivity.",
-        "recommendation": "Use retinol and AHAs on different nights.",
-    },
-    frozenset({"benzoyl peroxide", "aha"}): {
-        "risk_level": "high",
-        "message": "Benzoyl peroxide combined with AHAs may cause excessive dryness and irritation.",
-        "recommendation": "Do not layer benzoyl peroxide with exfoliating acids.",
-    },
-    frozenset({"vitamin c", "copper peptides"}): {
-        "risk_level": "medium",
-        "message": "Copper peptides may reduce vitamin C stability when used in the same routine.",
-        "recommendation": "Use vitamin C and copper peptides at different times of day.",
-    },
-    frozenset({"fragrance", "retinol"}): {
-        "risk_level": "medium",
-        "message": "Fragrance may increase irritation risk when combined with retinol.",
-        "recommendation": "Avoid fragranced products when using retinol, especially on sensitive skin.",
-    },
-    frozenset({"fragrance", "salicylic acid"}): {
-        "risk_level": "medium",
-        "message": "Fragrance combined with salicylic acid may increase irritation risk, especially for sensitive skin.",
-        "recommendation": "Use a fragrance-free product when applying salicylic acid.",
-    },
-}
-
-
-STACKING_RULES = {
-    "retinol": {
-        "risk_level": "high",
-        "message": "Multiple retinol products detected.",
-        "recommendation": "Use only one retinol product.",
-    },
-    "salicylic acid": {
-        "risk_level": "medium",
-        "message": "Multiple salicylic acid products detected.",
-        "recommendation": "Avoid overuse.",
-    },
-    "glycolic acid": {
-        "risk_level": "medium",
-        "message": "Multiple glycolic acid products detected.",
-        "recommendation": "Use only one glycolic acid product.",
-    },
-    "benzoyl peroxide": {
-        "risk_level": "high",
-        "message": "Multiple benzoyl peroxide products detected.",
-        "recommendation": "Use only one benzoyl peroxide product.",
-    },
-}
 
 
 RISK_SCORE = {"low": 1, "medium": 2, "high": 3}
@@ -227,8 +143,8 @@ def analyze_payload(payload: AnalyzerRequest) -> AnalyzerResponse:
             ingredient_to_products.setdefault(ingredient, []).append(p.id)
 
     for ingredient, count in counter.items():
-        if count >= 2 and ingredient in STACKING_RULES:
-            rule = STACKING_RULES[ingredient]
+        if count >= 2 and ingredient in STACKING_INGREDIENTS:
+            rule = STACKING_INGREDIENTS[ingredient]
             issues.append(
                 Issue(
                     product_ids=ingredient_to_products[ingredient],
