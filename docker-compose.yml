@@ -8,10 +8,12 @@ services:
       EXTRACTOR_URL: http://extractor:8001/extract
       ANALYZER_URL: http://risk_engine:8002/analyze
       PERSONALIZER_URL: http://personalizer:8003/personalize
+      ROUTINE_BUILDER_URL: http://routine_builder:8004/routine
     depends_on:
       - extractor
       - risk_engine
       - personalizer
+      - routine_builder
 
   extractor:
     build: ./services/extractor
@@ -31,6 +33,11 @@ services:
     build: ./services/personalizer
     ports:
       - "8003:8003"
+
+  routine_builder:
+    build: ./services/routine_builder
+    ports:
+      - "8004:8004"
 
   prometheus:
     image: prom/prometheus:latest
