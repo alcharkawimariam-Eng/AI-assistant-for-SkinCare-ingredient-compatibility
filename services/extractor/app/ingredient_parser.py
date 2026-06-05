@@ -126,6 +126,23 @@ INTERACTION_KEYWORDS = [
     "acrylates",
     "propylene glycol",
     "lanolin",
+    "ceramide",
+
+    # Haircare ingredients / signals
+    "sulfates",
+    "silicones",
+    "dimethicone",
+    "cyclopentasiloxane",
+    "keratin",
+    "hydrolyzed keratin",
+    "protein",
+    "panthenol",
+    "argan oil",
+    "coconut oil",
+    "shea butter",
+    "color-treated hair",
+    "curly hair",
+    "clarifying shampoo",
 ]
 
 
