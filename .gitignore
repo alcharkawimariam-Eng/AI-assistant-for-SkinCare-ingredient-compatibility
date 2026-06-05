@@ -10,3 +10,4 @@ env/
 *.log
 mlruns/
 data/raw/
+_ocr_llm_inspect/
