@@ -14,7 +14,8 @@ from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-MAX_PAYLOAD_SIZE_BYTES = 100 * 1024
+SCAN_MAX_PAYLOAD_SIZE_BYTES = 100 * 1024
+OCR_MAX_PAYLOAD_SIZE_BYTES = 5 * 1024 * 1024
 INTERNAL_TIMEOUT_SECONDS = 10
 OCR_TIMEOUT_SECONDS = 180
 
@@ -30,11 +31,20 @@ class PayloadSizeLimitMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         content_length = request.headers.get("content-length")
 
-        if content_length and int(content_length) > MAX_PAYLOAD_SIZE_BYTES:
-            return JSONResponse(
-                status_code=413,
-                content={"detail": "Payload exceeds 100KB limit"},
-            )
+        if content_length:
+            size = int(content_length)
+
+            if request.url.path == "/scan" and size > SCAN_MAX_PAYLOAD_SIZE_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Scan payload exceeds 100KB limit"},
+                )
+
+            if request.url.path == "/extract-ocr" and size > OCR_MAX_PAYLOAD_SIZE_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "OCR upload exceeds 5MB limit"},
+                )
 
         return await call_next(request)
 
@@ -331,4 +341,3 @@ def scan(request: Request, payload: ScanRequest):
         "analysis": final_analysis,
         "unknown_products": extractor_result.get("unknown_products", []),
     }
-    

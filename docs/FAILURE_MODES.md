@@ -2,25 +2,35 @@
 
 ## Oversized Payload
 
-If a request exceeds 100KB:
+The gateway applies endpoint-specific payload limits.
 
+For `/scan`:
+
+- Limit: 100KB
 - Status: 413 Payload Too Large
 - Response:
-  {"detail":"Payload exceeds 100KB limit"}
+  `{"detail":"Scan payload exceeds 100KB limit"}`
+
+For `/extract-ocr`:
+
+- Limit: 5MB
+- Status: 413 Payload Too Large
+- Response:
+  `{"detail":"OCR upload exceeds 5MB limit"}`
 
 ## Rate Limiting
 
 Gateway endpoints are rate limited.
 
-- /health: 60 requests/minute
-- /scan: 5 requests/minute
-- /extract-ocr: 5 requests/minute
+- `/health`: 60 requests/minute
+- `/scan`: 5 requests/minute
+- `/extract-ocr`: 5 requests/minute
 
 When exceeded:
 
 - Status: 429 Too Many Requests
 - Response:
-  {"detail":"Rate limit exceeded"}
+  `{"detail":"Rate limit exceeded"}`
 
 ## Request Tracing
 
@@ -28,7 +38,7 @@ Each request is assigned a unique request ID.
 
 Response header:
 
-X-Request-ID
+`X-Request-ID`
 
 The request ID is logged for troubleshooting and traceability.
 
