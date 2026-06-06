@@ -1,7 +1,17 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
+
+  - job_name: 'gateway'
+    static_configs:
+      - targets: ['gateway:8000']
+
+  - job_name: 'extractor'
+    static_configs:
+      - targets: ['extractor:8001']
+
   - job_name: 'risk_engine'
     static_configs:
       - targets: ['risk_engine:8002']
@@ -9,3 +19,7 @@ scrape_configs:
   - job_name: 'personalizer'
     static_configs:
       - targets: ['personalizer:8003']
+
+  - job_name: 'routine_builder'
+    static_configs:
+      - targets: ['routine_builder:8004']

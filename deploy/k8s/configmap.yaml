@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: skincare-ai-config
+  namespace: skincare-ai
+data:
+  EXTRACTOR_URL: "http://extractor:8001/extract"
+  EXTRACTOR_OCR_URL: "http://extractor:8001/extract-ocr"
+  ANALYZER_URL: "http://risk-engine:8002/analyze"
+  PERSONALIZER_URL: "http://personalizer:8003/personalize"
+  ROUTINE_BUILDER_URL: "http://routine-builder:8004/routine"
+  MLFLOW_TRACKING_URI: "http://mlflow:5000"
