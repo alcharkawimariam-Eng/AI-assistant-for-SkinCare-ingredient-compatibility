@@ -1,7 +1,7 @@
 import os
 from typing import Optional, Any, Dict, List, Literal
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 
@@ -19,6 +19,7 @@ app.add_middleware(
 )
 
 EXTRACTOR_URL = os.getenv("EXTRACTOR_URL", "http://127.0.0.1:8001/extract")
+EXTRACTOR_OCR_URL = os.getenv("EXTRACTOR_OCR_URL", "http://127.0.0.1:8001/extract-ocr")
 ANALYZER_URL = os.getenv("ANALYZER_URL", "http://127.0.0.1:8002/analyze")
 PERSONALIZER_URL = os.getenv("PERSONALIZER_URL", "http://127.0.0.1:8003/personalize")
 ROUTINE_BUILDER_URL = os.getenv("ROUTINE_BUILDER_URL", "http://127.0.0.1:8004/routine")
@@ -168,6 +169,45 @@ def call_routine_builder(profile: Optional[Dict[str, Any]]) -> Optional[Dict[str
         raise HTTPException(
             status_code=502,
             detail=f"Failed to call routine builder service: {str(exc)}"
+        )
+
+
+@app.post("/extract-ocr")
+def extract_ocr(image: UploadFile = File(...)):
+    """
+    Proxy OCR image uploads from the frontend to the extractor service.
+    Frontend calls gateway /extract-ocr, gateway forwards to extractor /extract-ocr.
+    """
+    try:
+        file_bytes = image.file.read()
+        files = {
+            "image": (
+                image.filename or "upload",
+                file_bytes,
+                image.content_type or "application/octet-stream",
+            )
+        }
+
+        response = requests.post(
+            EXTRACTOR_OCR_URL,
+            files=files,
+            timeout=180,
+        )
+
+        if response.status_code >= 400:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=response.text,
+            )
+
+        return response.json()
+
+    except HTTPException:
+        raise
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to call extractor OCR service: {str(exc)}"
         )
 
 
