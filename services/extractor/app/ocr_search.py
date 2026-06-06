@@ -95,6 +95,101 @@ _END_MARKERS = [
 ]
 
 
+# Common skincare ingredients used as a fallback when OCR removes commas/bullets.
+# Longer phrases must appear before shorter phrases to avoid partial matches.
+_KNOWN_INGREDIENTS = [
+    "trisodium ethylenediamine disuccinate",
+    "glyceryl acrylate/acrylic acid copolymer",
+    "ammonium polyacryloyldimethyl taurate",
+    "butyrospermum parkii butter",
+    "salvia miltiorrhiza root extract",
+    "sphingomonas ferment extract",
+    "hydroxyacetophenone",
+    "acetyl dipeptide-1 cetyl ester",
+    "butylene glycol",
+    "pentylene glycol",
+    "zea mays starch",
+    "corn starch",
+    "polysorbate 20",
+    "shea butter",
+    "niacinamide",
+    "propanediol",
+    "squalane",
+    "cellulose",
+    "citric acid",
+    "glycerin",
+    "water",
+    "aqua",
+    "retinol",
+    "salicylic acid",
+    "glycolic acid",
+    "lactic acid",
+    "hyaluronic acid",
+    "sodium hyaluronate",
+    "ceramide np",
+    "ceramide ap",
+    "ceramide eop",
+    "tocopherol",
+    "dimethicone",
+    "phenoxyethanol",
+    "disodium edta",
+    "xanthan gum",
+    "caprylic/capric triglyceride",
+]
+
+
+def _normalize_ocr_text(text: str) -> str:
+    normalized = text.lower()
+    normalized = normalized.replace("•", " ")
+    normalized = normalized.replace("·", " ")
+    normalized = normalized.replace("/", " / ")
+    normalized = re.sub(r"[^a-z0-9/%+\-\s]", " ", normalized)
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    return normalized
+
+
+def _extract_known_ingredients(section_text: str) -> List[str]:
+    """
+    Fallback parser for OCR text where separators are lost.
+    It detects common skincare ingredients and returns them in text order.
+    """
+    normalized = _normalize_ocr_text(section_text)
+
+    found: list[tuple[int, str]] = []
+    occupied: list[range] = []
+
+    for ingredient in sorted(_KNOWN_INGREDIENTS, key=len, reverse=True):
+        pattern = r"\b" + re.escape(ingredient).replace("\\ ", r"\s+") + r"\b"
+        for match in re.finditer(pattern, normalized):
+            span = range(match.start(), match.end())
+            if any(match.start() < r.stop and match.end() > r.start for r in occupied):
+                continue
+            found.append((match.start(), ingredient))
+            occupied.append(span)
+
+    ordered = [ingredient for _, ingredient in sorted(found, key=lambda item: item[0])]
+
+    # Combine common OCR rendering of AQUA / WATER into one cleaner item.
+    combined: list[str] = []
+    i = 0
+    while i < len(ordered):
+        if i + 1 < len(ordered) and ordered[i] == "aqua" and ordered[i + 1] == "water":
+            combined.append("aqua / water")
+            i += 2
+        else:
+            combined.append(ordered[i])
+            i += 1
+
+    seen = set()
+    unique: list[str] = []
+    for ingredient in combined:
+        if ingredient not in seen:
+            seen.add(ingredient)
+            unique.append(ingredient)
+
+    return unique
+
+
 def _extract_ingredient_section(text: str) -> str:
     """Find the 'INGREDIENTS:' section and return just that portion."""
     lower = text.lower()
@@ -211,6 +306,12 @@ def extract_ingredients_from_image(image_bytes: bytes) -> OCRResult:
 
     section = _extract_ingredient_section(raw_text)
     ingredients = _parse_ingredients(section)
+
+    # If OCR lost separators, comma/bullet parsing may produce one or two long run-ons.
+    # Use known-ingredient extraction as a quality fallback for clearer demo output.
+    known_ingredients = _extract_known_ingredients(section)
+    if len(known_ingredients) > len(ingredients):
+        ingredients = known_ingredients
 
     return OCRResult(
         raw_text=raw_text,

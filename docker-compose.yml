@@ -6,6 +6,7 @@ services:
     env_file: .env.example
     environment:
       EXTRACTOR_URL: http://extractor:8001/extract
+      EXTRACTOR_OCR_URL: http://extractor:8001/extract-ocr
       ANALYZER_URL: http://risk_engine:8002/analyze
       PERSONALIZER_URL: http://personalizer:8003/personalize
       ROUTINE_BUILDER_URL: http://routine_builder:8004/routine
