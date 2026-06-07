@@ -1506,67 +1506,93 @@ profile: {
     };
 
     const backendResult = await scanProducts(payload);
-addHistoryItem({
-  type: "Ingredient Checker",
-  title: parsedIngredients.join(", "),
-  summary:
-    backendResult.summary ||
-    backendResult.decision ||
-    "Ingredient check completed by backend.",
-  status: backendResult.risk_level || "completed",
-});
+    const analysis = backendResult.analysis || backendResult;
+    const recognizedIngredientNames = new Set();
+
+    (backendResult.products || []).forEach((product) => {
+      (product.interaction_relevant_ingredients || []).forEach((ingredient) =>
+        recognizedIngredientNames.add(String(ingredient).toLowerCase())
+      );
+    });
+
+    (analysis.product_details || []).forEach((product) => {
+      (product.interaction_relevant_ingredients || []).forEach((ingredient) =>
+        recognizedIngredientNames.add(String(ingredient).toLowerCase())
+      );
+    });
+
+    [...(analysis.strengths || []), ...(analysis.cautions || []), ...(analysis.optimal_ph || []), ...(analysis.optimalPH || [])].forEach((note) => {
+      parsedIngredients.forEach((ingredient) => {
+        if (String(note).toLowerCase().includes(ingredient.toLowerCase())) {
+          recognizedIngredientNames.add(ingredient.toLowerCase());
+        }
+      });
+    });
+
+    addHistoryItem({
+      type: "Ingredient Checker",
+      title: parsedIngredients.join(", "),
+      summary:
+        analysis.summary ||
+        analysis.decision ||
+        "Ingredient check completed by backend.",
+      status: analysis.risk_level || "completed",
+    });
     setIngredientCheckerResult({
       typedIngredients: parsedIngredients,
       matchedEntries: parsedIngredients.map((ingredient) => ({
         typed: ingredient,
-        matched: null,
+        matched: recognizedIngredientNames.has(ingredient.toLowerCase())
+          ? {
+              label: ingredient,
+              purpose: "Recognized by backend compatibility analysis.",
+            }
+          : null,
       })),
       foundCount: parsedIngredients.length,
-      synergies: backendResult.synergies || [],
-      conflicts: backendResult.issues?.map((issue) => issue.message) || [],
+      synergies: analysis.synergies || [],
+      conflicts: analysis.issues?.map((issue) => issue.message) || [],
       developerNotes:
-        backendResult.explanations ||
-        backendResult.recommendations ||
+        analysis.explanations ||
+        analysis.recommendations ||
         [],
-      strengths: backendResult.strengths || [],
+      strengths: analysis.strengths || [],
       cautionFlags:
-        backendResult.cautions ||
-        backendResult.warnings ||
+        analysis.cautions ||
+        analysis.warnings ||
         [],
       notes:
-        backendResult.notes ||
-        backendResult.summary
-          ? [backendResult.summary]
-          : [],
-      optimalPH: backendResult.optimalPH || [],
+        analysis.notes ||
+        (analysis.summary ? [analysis.summary] : []),
+      optimalPH: analysis.optimal_ph || analysis.optimalPH || [],
       bg:
-        backendResult.risk_level === "high" ||
-        (backendResult.issues && backendResult.issues.length > 0)
+        analysis.risk_level === "high" ||
+        (analysis.issues && analysis.issues.length > 0)
           ? "#FFF1F1"
           : "#EEFBEF",
       border:
-        backendResult.risk_level === "high" ||
-        (backendResult.issues && backendResult.issues.length > 0)
+        analysis.risk_level === "high" ||
+        (analysis.issues && analysis.issues.length > 0)
           ? "#F5B5B5"
           : "#A7E3AE",
       titleColor:
-        backendResult.risk_level === "high" ||
-        (backendResult.issues && backendResult.issues.length > 0)
+        analysis.risk_level === "high" ||
+        (analysis.issues && analysis.issues.length > 0)
           ? "#C62828"
           : "#2E7D32",
       sectionBg:
-        backendResult.risk_level === "high" ||
-        (backendResult.issues && backendResult.issues.length > 0)
+        analysis.risk_level === "high" ||
+        (analysis.issues && analysis.issues.length > 0)
           ? "#FFE7E7"
           : "#EDF9F0",
       status:
-        backendResult.risk_level === "high" ||
-        (backendResult.issues && backendResult.issues.length > 0)
+        analysis.risk_level === "high" ||
+        (analysis.issues && analysis.issues.length > 0)
           ? "Ingredient Caution"
           : "Ingredient Backend Review",
       icon:
-        backendResult.risk_level === "high" ||
-        (backendResult.issues && backendResult.issues.length > 0)
+        analysis.risk_level === "high" ||
+        (analysis.issues && analysis.issues.length > 0)
           ? "⚠️"
           : "🧪",
       rawBackendResult: backendResult,
