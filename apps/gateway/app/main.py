@@ -1,11 +1,55 @@
+import logging
 import os
-from typing import Optional, Any, Dict, List, Literal
-import requests
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, model_validator
+import uuid
+from typing import Any, Dict, List, Literal, Optional
 
+import requests
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field, model_validator
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+
+SCAN_MAX_PAYLOAD_SIZE_BYTES = 100 * 1024
+OCR_MAX_PAYLOAD_SIZE_BYTES = 5 * 1024 * 1024
+INTERNAL_TIMEOUT_SECONDS = 10
+OCR_TIMEOUT_SECONDS = 180
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("gateway")
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 app = FastAPI(title="Gateway Service")
+app.state.limiter = limiter
+
+
+class PayloadSizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+
+        if content_length:
+            size = int(content_length)
+
+            if request.url.path == "/scan" and size > SCAN_MAX_PAYLOAD_SIZE_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "Scan payload exceeds 100KB limit"},
+                )
+
+            if request.url.path == "/extract-ocr" and size > OCR_MAX_PAYLOAD_SIZE_BYTES:
+                return JSONResponse(
+                    status_code=413,
+                    content={"detail": "OCR upload exceeds 5MB limit"},
+                )
+
+        return await call_next(request)
+
+
+app.add_middleware(PayloadSizeLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,6 +61,36 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded"},
+    )
+
+
+@app.middleware("http")
+async def add_request_id(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
+
+    logger.info("[%s] %s %s started", request_id, request.method, request.url.path)
+
+    response = await call_next(request)
+
+    response.headers["X-Request-ID"] = request_id
+    logger.info(
+        "[%s] %s %s completed with status %s",
+        request_id,
+        request.method,
+        request.url.path,
+        response.status_code,
+    )
+
+    return response
+
 
 EXTRACTOR_URL = os.getenv("EXTRACTOR_URL", "http://127.0.0.1:8001/extract")
 EXTRACTOR_OCR_URL = os.getenv("EXTRACTOR_OCR_URL", "http://127.0.0.1:8001/extract-ocr")
@@ -45,7 +119,8 @@ class UserProfile(BaseModel):
     skin_type: Optional[Literal["normal", "oily", "dry", "combination", "sensitive"]] = None
     sensitivity: Optional[Literal["low", "medium", "high"]] = None
     age_group: Optional[Literal["teen", "adult", "mature"]] = None
-    concerns: List[str] = []
+    concerns: List[str] = Field(default_factory=list)
+
 
 class ScanRequest(BaseModel):
     products: list[ProductInput]
@@ -70,21 +145,37 @@ class ScanRequest(BaseModel):
 
 
 @app.get("/health")
-def health():
+@limiter.limit("60/minute")
+def health(request: Request):
     return {"status": "ok", "service": "gateway"}
+
+
+@retry(
+    retry=retry_if_exception_type(requests.RequestException),
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=0.5, min=0.5, max=2),
+    reraise=True,
+)
+def post_json_with_retries(
+    url: str,
+    payload: Dict[str, Any],
+    timeout: int = INTERNAL_TIMEOUT_SECONDS,
+) -> requests.Response:
+    return requests.post(url, json=payload, timeout=timeout)
 
 
 def call_extractor(products: list[dict]) -> Dict[str, Any]:
     extractor_payload = {"products": products}
 
     try:
-        response = requests.post(EXTRACTOR_URL, json=extractor_payload, timeout=30)
+        logger.info("Calling extractor service")
+        response = post_json_with_retries(EXTRACTOR_URL, extractor_payload)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Failed to call extractor service: {str(exc)}"
+            detail=f"Failed to call extractor service: {str(exc)}",
         )
 
 
@@ -108,15 +199,15 @@ def call_analyzer_if_available(extractor_result: Dict[str, Any]) -> Any:
         return None
 
     try:
-        response = requests.post(ANALYZER_URL, json=analyzer_payload, timeout=30)
+        logger.info("Calling analyzer service")
+        response = post_json_with_retries(ANALYZER_URL, analyzer_payload)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Failed to call analyzer service: {str(exc)}"
+            detail=f"Failed to call analyzer service: {str(exc)}",
         )
-
 
 
 def call_personalizer_if_available(
@@ -127,17 +218,18 @@ def call_personalizer_if_available(
         return None
 
     try:
-        response = requests.post(
+        logger.info("Calling personalizer service")
+        response = post_json_with_retries(
             PERSONALIZER_URL,
-            json={
+            {
                 "analysis": analysis_result,
                 "profile": profile,
             },
-            timeout=10,
         )
         response.raise_for_status()
         return response.json()
     except requests.RequestException:
+        logger.warning("Personalizer unavailable; returning analyzer result without personalization")
         return None
 
 
@@ -153,27 +245,28 @@ def call_routine_builder(profile: Optional[Dict[str, Any]]) -> Optional[Dict[str
         return None
 
     try:
-        response = requests.post(
+        logger.info("Calling routine builder service")
+        response = post_json_with_retries(
             ROUTINE_BUILDER_URL,
-            json={
+            {
                 "skin_type": skin_type,
                 "concern": concern,
                 "sensitivity": profile.get("sensitivity"),
                 "age_group": profile.get("age_group"),
             },
-            timeout=10,
         )
         response.raise_for_status()
         return response.json()
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Failed to call routine builder service: {str(exc)}"
+            detail=f"Failed to call routine builder service: {str(exc)}",
         )
 
 
 @app.post("/extract-ocr")
-def extract_ocr(image: UploadFile = File(...)):
+@limiter.limit("5/minute")
+def extract_ocr(request: Request, image: UploadFile = File(...)):
     """
     Proxy OCR image uploads from the frontend to the extractor service.
     Frontend calls gateway /extract-ocr, gateway forwards to extractor /extract-ocr.
@@ -191,7 +284,7 @@ def extract_ocr(image: UploadFile = File(...)):
         response = requests.post(
             EXTRACTOR_OCR_URL,
             files=files,
-            timeout=180,
+            timeout=OCR_TIMEOUT_SECONDS,
         )
 
         if response.status_code >= 400:
@@ -207,12 +300,13 @@ def extract_ocr(image: UploadFile = File(...)):
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"Failed to call extractor OCR service: {str(exc)}"
+            detail=f"Failed to call extractor OCR service: {str(exc)}",
         )
 
 
 @app.post("/scan")
-def scan(payload: ScanRequest):
+@limiter.limit("5/minute")
+def scan(request: Request, payload: ScanRequest):
     if payload.request_type == "routine_builder":
         profile_dict = payload.profile.model_dump() if payload.profile else None
         routine_result = call_routine_builder(profile_dict)
