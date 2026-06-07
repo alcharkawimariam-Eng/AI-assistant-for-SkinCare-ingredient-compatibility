@@ -12,7 +12,8 @@ The system combines ingredient extraction, compatibility analysis, personalizati
 
 * Mariam Al Charkawi
 * Julia Issa
-* Joumana Saker
+* Joumana Sakr
+
 ---
 
 ## System Architecture
@@ -98,41 +99,43 @@ git clone <repository-url>
 cd AI-assistant-for-SkinCare-ingredient-compatibility
 ```
 
-### Create Virtual Environment
+### Recommended Local Setup
+
+The recommended way to run the full system locally is Docker Compose, because the project contains multiple services with separate dependencies.
 
 ```bash
-python -m venv .venv
+docker compose up --build
 ```
+
+This starts the gateway, extractor, risk engine, personalizer, routine builder, Prometheus, Grafana, and MLflow services.
+
+### Optional Manual Service Setup
+
+If a developer wants to run services manually, they can create a virtual environment and install each service’s requirements separately.
 
 Windows:
 
 ```bash
+python -m venv .venv
 .venv\Scripts\activate
 ```
 
 Linux/Mac:
 
 ```bash
+python -m venv .venv
 source .venv/bin/activate
 ```
 
-### Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### Docker Compose
-
-```bash
-docker compose up --build
-```
+Individual services include their own requirements files where applicable.
 
 ---
 
 ## Cloud Deployment
 
 The application is deployed on a DigitalOcean Ubuntu virtual machine.
+
+The frontend is publicly served through Nginx at `http://161.35.209.217` and connects to the deployed gateway at `http://161.35.209.217:8000`.
 
 Deployment components include:
 
@@ -147,6 +150,12 @@ Deployment components include:
 * MLflow experiment tracking
 
 The backend services are deployed using Docker containers while the frontend is served through Nginx.
+
+---
+
+## Kubernetes Deliverables
+
+The repository includes Kubernetes manifests under `deploy/k8s/`, including namespace, ConfigMap, deployments, services, ingress, and a secrets template. The live demo uses Docker Compose on a DigitalOcean VM, while the Kubernetes files are included as production-readiness deliverables.
 
 ---
 
