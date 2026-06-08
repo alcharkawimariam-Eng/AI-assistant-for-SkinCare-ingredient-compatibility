@@ -1743,7 +1743,7 @@ const handleOcrExtract = async () => {
     const formData = new FormData();
     formData.append("image", ocrImage);
 
-    const response = await fetch("http://localhost:8000/extract-ocr", {
+    const response = await fetch("http://161.35.209.217:8000/extract-ocr", {
       method: "POST",
       body: formData,
     });
