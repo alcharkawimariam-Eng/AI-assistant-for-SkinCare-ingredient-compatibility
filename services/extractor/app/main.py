@@ -3,9 +3,10 @@ import time
 from typing import Optional
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, model_validator
 from prometheus_client import Counter as PromCounter, Histogram
-
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from .search_service import SearchService
 from .ocr_search import extract_ingredients_from_image
 from .llm_search import is_llm_available, PROMPT_VERSION
@@ -36,7 +37,12 @@ LLM_COST_USD = PromCounter(
 )
 
 app = FastAPI(title="Extractor Service")
-
+@app.get("/metrics", response_class=PlainTextResponse)
+def metrics():
+    return PlainTextResponse(
+        generate_latest().decode("utf-8"),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 class ProductInput(BaseModel):
     id: str
