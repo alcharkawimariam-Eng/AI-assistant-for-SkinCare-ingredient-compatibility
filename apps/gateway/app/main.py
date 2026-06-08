@@ -6,13 +6,22 @@ from typing import Any, Dict, List, Literal, Optional
 import requests
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field, model_validator
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 from starlette.middleware.base import BaseHTTPMiddleware
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+
+import time
+
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter as PromCounter,
+    Histogram,
+    generate_latest,
+)
 
 SCAN_MAX_PAYLOAD_SIZE_BYTES = 100 * 1024
 OCR_MAX_PAYLOAD_SIZE_BYTES = 5 * 1024 * 1024
@@ -24,6 +33,32 @@ logger = logging.getLogger("gateway")
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 app = FastAPI(title="Gateway Service")
+# Prometheus metrics
+GATEWAY_REQUESTS = PromCounter(
+    "gateway_requests_total",
+    "Total gateway requests",
+    labelnames=("endpoint", "status"),
+)
+
+GATEWAY_LATENCY = Histogram(
+    "gateway_request_latency_seconds",
+    "Gateway request latency in seconds",
+    labelnames=("endpoint",),
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+)
+
+
+@app.middleware("http")
+async def prometheus_middleware(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    elapsed = time.perf_counter() - start
+
+    endpoint = request.url.path
+    GATEWAY_LATENCY.labels(endpoint=endpoint).observe(elapsed)
+    GATEWAY_REQUESTS.labels(endpoint=endpoint, status=str(response.status_code)).inc()
+
+    return response
 app.state.limiter = limiter
 
 
@@ -144,6 +179,12 @@ class ScanRequest(BaseModel):
 
         return self
 
+@app.get("/metrics", response_class=PlainTextResponse)
+def metrics():
+    return PlainTextResponse(
+        generate_latest().decode("utf-8"),
+        media_type=CONTENT_TYPE_LATEST,
+    )
 
 @app.get("/health")
 @limiter.limit("60/minute")
