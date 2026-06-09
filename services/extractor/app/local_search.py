@@ -8,6 +8,7 @@ import pandas as pd
 
 from .ingredient_parser import extract_interaction_relevant_ingredients
 
+
 class LocalProductSearch:
     def __init__(self, csv_path: str | Path):
         self.csv_path = Path(csv_path)
@@ -24,13 +25,22 @@ class LocalProductSearch:
         if missing_columns:
             raise ValueError(f"Missing required columns in dataset: {missing_columns}")
 
-        for col in ["product_id", "brand", "category", "source_url"]:
+        for col in [
+            "product_id",
+            "brand",
+            "category",
+            "source_url",
+            "active_ingredients",
+            "official_active_ingredients",
+            "key_ingredients",
+        ]:
             if col not in df.columns:
                 df[col] = None
 
         df["product_name"] = df["product_name"].fillna("").astype(str)
         df["brand"] = df["brand"].fillna("").astype(str)
         df["full_ingredients_text"] = df["full_ingredients_text"].fillna("").astype(str)
+        df["active_ingredients"] = df["active_ingredients"].fillna("").astype(str)
 
         df["product_name_normalized"] = df["product_name"].apply(self._normalize_text)
         df["brand_normalized"] = df["brand"].apply(self._normalize_text)
@@ -87,16 +97,15 @@ class LocalProductSearch:
         ingredients = row.get("full_ingredients_text")
         active_ingredients = row.get("active_ingredients")
 
-        interaction_value = row.get("interaction_relevant_ingredients")
-        if pd.isna(interaction_value) or interaction_value is None or str(interaction_value).strip() == "":
-            base_text = ""
+        base_text_parts = []
 
-            if not pd.isna(active_ingredients) and active_ingredients is not None:
-                base_text += str(active_ingredients) + " "
+        if active_ingredients is not None and not pd.isna(active_ingredients) and str(active_ingredients).strip():
+            base_text_parts.append(str(active_ingredients))
 
-            if not pd.isna(ingredients) and ingredients is not None:
-                base_text += str(ingredients)
+        if ingredients is not None and not pd.isna(ingredients) and str(ingredients).strip():
+            base_text_parts.append(str(ingredients))
 
+        base_text = " ".join(base_text_parts)
         interaction_value = extract_interaction_relevant_ingredients(base_text)
 
         key_ingredients = row.get("key_ingredients")
@@ -115,10 +124,10 @@ class LocalProductSearch:
             "brand": row.get("brand"),
             "product_name": row.get("product_name"),
             "category": row.get("category"),
-            "ingredients": row.get("full_ingredients_text"),
+            "full_ingredients_text": row.get("full_ingredients_text"),
             "active_ingredients": row.get("active_ingredients"),
             "official_active_ingredients": official_active_ingredients,
             "key_ingredients": key_ingredients,
             "interaction_relevant_ingredients": interaction_value,
             "source_url": row.get("source_url"),
-    }
+        }

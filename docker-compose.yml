@@ -1,23 +1,46 @@
-version: '3.9'
 services:
   gateway:
     build: ./apps/gateway
     ports:
       - "8000:8000"
     env_file: .env.example
+    environment:
+      EXTRACTOR_URL: http://extractor:8001/extract
+      EXTRACTOR_OCR_URL: http://extractor:8001/extract-ocr
+      ANALYZER_URL: http://risk_engine:8002/analyze
+      PERSONALIZER_URL: http://personalizer:8003/personalize
+      ROUTINE_BUILDER_URL: http://routine_builder:8004/routine
     depends_on:
       - extractor
       - risk_engine
+      - personalizer
+      - routine_builder
 
   extractor:
     build: ./services/extractor
     ports:
       - "8001:8001"
+ 
+    env_file: .env
+    environment:
+      DATASET_PATH: /data/main_skincare_dataset.csv
+    volumes:
+      - ./data:/data:ro
 
   risk_engine:
     build: ./services/risk_engine
     ports:
       - "8002:8002"
+
+  personalizer:
+    build: ./services/personalizer
+    ports:
+      - "8003:8003"
+
+  routine_builder:
+    build: ./services/routine_builder
+    ports:
+      - "8004:8004"
 
   prometheus:
     image: prom/prometheus:latest

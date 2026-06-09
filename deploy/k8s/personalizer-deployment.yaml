@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: personalizer
+  namespace: skincare-ai
+  labels:
+    app: personalizer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: personalizer
+  template:
+    metadata:
+      labels:
+        app: personalizer
+    spec:
+      containers:
+        - name: personalizer
+          image: <DOCKERHUB_USER>/skincare-personalizer:latest
+          ports:
+            - containerPort: 8003
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: personalizer
+  namespace: skincare-ai
+spec:
+  selector:
+    app: personalizer
+  ports:
+    - name: http
+      port: 8003
+      targetPort: 8003
+  type: ClusterIP

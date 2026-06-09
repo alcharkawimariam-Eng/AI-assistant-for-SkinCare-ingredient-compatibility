@@ -1,22 +1,56 @@
+from __future__ import annotations
+
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi.responses import PlainTextResponse
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    Counter as PromCounter,
+    generate_latest,
+)
 
-app = FastAPI(title="Risk Engine Service")
+from .analyzer import analyze_payload
+from .schemas import AnalyzerRequest, AnalyzerResponse, ProductInput
 
-class RiskRequest(BaseModel):
-    ingredients: list[str]
-    skin_type: str | None = None
-    sensitivity: str | None = None
+app = FastAPI(title="Analyzer / Compatibility Service")
 
+
+# -------------------------
+# Metrics
+# -------------------------
+ANALYZE_REQUESTS = PromCounter(
+    "analyzer_requests_total",
+    "Total number of analyzer requests",
+)
+
+ANALYZE_HIGH_RISK = PromCounter(
+    "analyzer_high_risk_total",
+    "Total number of high risk analyzer responses",
+)
+
+
+# -------------------------
+# Endpoints
+# -------------------------
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "risk_engine"}
+    return {"status": "ok", "service": "analyzer"}
 
-@app.post("/assess")
-def assess(payload: RiskRequest):
-    return {
-        "risk_level": "safe",
-        "score": 0.0,
-        "reasons": [],
-        "message": "Risk engine scaffold ready. Next step: pairwise rule evaluation."
-    }
+
+@app.get("/metrics", response_class=PlainTextResponse)
+def metrics():
+    return PlainTextResponse(
+        generate_latest().decode("utf-8"),
+        media_type=CONTENT_TYPE_LATEST,
+    )
+
+
+@app.post("/analyze", response_model=AnalyzerResponse)
+def analyze(payload: AnalyzerRequest):
+    ANALYZE_REQUESTS.inc()
+
+    result = analyze_payload(payload)
+
+    if result.risk_level == "high":
+        ANALYZE_HIGH_RISK.inc()
+
+    return result

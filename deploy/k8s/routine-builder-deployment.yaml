@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routine-builder
+  namespace: skincare-ai
+  labels:
+    app: routine-builder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: routine-builder
+  template:
+    metadata:
+      labels:
+        app: routine-builder
+    spec:
+      containers:
+        - name: routine-builder
+          image: <DOCKERHUB_USER>/skincare-routine-builder:latest
+          ports:
+            - containerPort: 8004
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: routine-builder
+  namespace: skincare-ai
+spec:
+  selector:
+    app: routine-builder
+  ports:
+    - name: http
+      port: 8004
+      targetPort: 8004
+  type: ClusterIP

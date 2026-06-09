@@ -10,3 +10,7 @@ env/
 *.log
 mlruns/
 data/raw/
+_ocr_llm_inspect/
+
+# Local inspection folders
+_all_tabs_inspect/

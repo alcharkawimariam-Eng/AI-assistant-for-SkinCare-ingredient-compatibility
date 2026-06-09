@@ -1,0 +1,39 @@
+# Ingress — exposes the gateway to external traffic.
+# Requires an ingress controller to be installed in the cluster.
+#
+# For AWS EKS:  use the AWS Load Balancer Controller (annotation below is for NLB).
+# For GKE:     the GKE Ingress controller is installed by default.
+# For local testing with minikube: run `minikube addons enable ingress`.
+#
+# Replace <YOUR_DOMAIN> with your actual domain (e.g. api.skincare-ai.com)
+# or remove the host rule to route all traffic to the gateway.
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: skincare-ai-ingress
+  namespace: skincare-ai
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # AWS EKS NLB annotation — comment out if not on EKS:
+    # kubernetes.io/ingress.class: "alb"
+    # alb.ingress.kubernetes.io/scheme: "internet-facing"
+    # alb.ingress.kubernetes.io/target-type: "ip"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: <YOUR_DOMAIN>
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8000
+  # Uncomment to enable HTTPS with a pre-provisioned TLS secret:
+  # tls:
+  #   - hosts:
+  #       - <YOUR_DOMAIN>
+  #     secretName: skincare-ai-tls
